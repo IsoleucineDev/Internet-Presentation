@@ -39,7 +39,6 @@
   .slide.dark{ background:var(--bg-dark); color:var(--paper); }
 
   .frame{ height:100%; width:100%; display:grid; grid-template-rows:auto 1fr auto; padding:52px 64px; }
-  .frame > *:not(.topbar):not(.footbar){ align-self:center; width:100%; }
 
   .topbar{ display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:12px; letter-spacing:.02em; }
   .topbar .mark{ display:flex; align-items:center; gap:10px; }
@@ -128,7 +127,6 @@
   table.complex tr:nth-child(1){ animation-delay:.05s; } table.complex tr:nth-child(2){ animation-delay:.12s; }
   table.complex tr:nth-child(3){ animation-delay:.19s; } table.complex tr:nth-child(4){ animation-delay:.26s; }
   table.complex tr:nth-child(5){ animation-delay:.33s; } table.complex tr:nth-child(6){ animation-delay:.40s; }
-  table.complex tr:nth-child(7){ animation-delay:.47s; }
 
   .formula{ font-family:var(--mono); font-size:14.5px; background:rgba(10,14,26,0.04); border:1px solid var(--line); padding:16px 18px; line-height:1.7; margin-top:14px; }
   .dark .formula{ background:rgba(245,245,243,0.05); border-color:var(--line-inv); }
@@ -154,11 +152,8 @@
   /* ---------- sliding-window diagram ---------- */
 
   .swrap{ margin-top:26px; }
-  .stripe{ display:flex; gap:6px; position:relative; justify-content:center; overflow-x:auto; max-width:100%; padding-bottom:4px; }
-  .tile{ width:40px; height:44px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:16px; border:1px solid var(--line-inv); color:var(--paper); background:rgba(245,245,243,.03); flex:none; }
-  .light .tile{ border-color:var(--line); color:var(--ink); background:rgba(10,14,26,.03); }
-  .light .window{ border-color:var(--orange); }
-  .light .swrap .caption{ color:rgba(10,14,26,.55); }
+  .stripe{ display:flex; gap:6px; position:relative; }
+  .tile{ width:40px; height:44px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:16px; border:1px solid var(--line-inv); color:var(--paper); background:rgba(245,245,243,.03); }
   .window{ position:absolute; top:-6px; left:0; height:56px; width:130px; border:2px solid var(--lime); border-radius:4px; animation:slide 6s ease-in-out infinite; }
   @keyframes slide{
     0%{ transform:translateX(0); }
@@ -201,14 +196,11 @@
   .navbtn{ width:42px;height:42px; border-radius:999px; border:1px solid rgba(255,255,255,.3); background:rgba(10,14,26,.55); color:#F5F5F3; display:flex;align-items:center;justify-content:center; cursor:pointer; font-size:16px; backdrop-filter:blur(4px); transition:background .2s ease, transform .15s ease; }
   .navbtn:hover{ background:var(--lime); color:var(--ink); transform:translateY(-2px); }
   #hint{ position:fixed; bottom:30px; left:64px; font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.45); letter-spacing:.03em; z-index:50; }
-  #timer{ position:fixed; top:26px; right:64px; font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.55); z-index:50; background:rgba(10,14,26,.55); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 14px; backdrop-filter:blur(4px); }
-  #timer.warn{ color:var(--orange); border-color:var(--orange); }
-  #timer.over{ color:#fff; background:var(--orange); border-color:var(--orange); }
 
   /* ---------- Rabin–Karp demo diagram ---------- */
 
   .rk-wrap{ margin-top:28px; }
-  .rk-track{ position:relative; display:flex; gap:6px; justify-content:center; overflow-x:auto; max-width:100%; padding-bottom:4px; }
+  .rk-track{ position:relative; display:flex; gap:6px; }
   .rk-tile{ width:38px;height:42px; display:flex;align-items:center;justify-content:center; font-family:var(--mono); font-size:15px; border:1px solid var(--line-inv); color:var(--paper); background:rgba(245,245,243,.03); flex:none; }
   .rk-window{ position:absolute; top:-6px; left:0; width:172px; height:54px; border:2px solid var(--lime); border-radius:4px; animation:rkslide 8s cubic-bezier(.65,0,.35,1) infinite; }
   @keyframes rkslide{
@@ -262,10 +254,10 @@
 
   /* ---------- debug / array step-through ---------- */
 
-  .dbg-chars{ display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap; justify-content:center; }
+  .dbg-chars{ display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap; }
   .dbg-chars .ct{ width:46px;height:46px; display:flex;align-items:center;justify-content:center; font-family:var(--display); font-size:22px; border:1px solid var(--line-inv); color:var(--paper); flex:none; }
   .dbg-chars .ct.hi{ border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset; }
-  .dbg-arr{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .dbg-arr{ display:flex; gap:10px; flex-wrap:wrap; }
   .dbg-arr .cell{ display:flex; flex-direction:column; align-items:center; gap:6px; }
   .dbg-arr .cell .idx{ font-family:var(--mono); font-size:11px; opacity:.55; }
   .dbg-arr .cell .val{ width:56px;height:44px; display:flex;align-items:center;justify-content:center; font-family:var(--mono); font-size:16px; border:1px solid var(--line-inv); background:rgba(245,245,243,.04); color:var(--paper); }
@@ -316,7 +308,7 @@
   @media print{
     .keycap{ animation:none !important; }
     html,body{ height:auto; } -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    #nav,#hint,#timer{ display:none !important; }
+    #nav,#hint{ display:none !important; }
     #deck{ height:auto; }
     .slide{ position:relative; display:block !important; opacity:1 !important; animation:none !important; page-break-after:always; break-after:page; height:100vh; }
     .marquee .track, .window, .rk-window, .bs-range, .bs-mid{ animation:none; }
@@ -326,30 +318,11 @@
   }
 
   @media (max-width:900px){
-    html,body{ overflow-y:auto; }
-    #deck{ height:auto; min-height:100vh; }
-    .slide{ position:relative; height:auto; min-height:100vh; }
-    .slide:not(.active){ display:none; }
-    .frame{ height:auto; min-height:100vh; padding:26px 20px; grid-template-rows:auto auto auto; row-gap:18px; }
-    .frame > *:not(.topbar):not(.footbar){ align-self:auto; }
-    .cols, .cols.asym, .hero-wrap{ grid-template-columns:1fr; gap:26px; }
+    .frame{ padding:30px 24px; }
+    .cols, .cols.asym, .hero-wrap{ grid-template-columns:1fr; }
     .hero-right{ border-left:none; border-top:1px solid var(--line-inv); padding-left:0; padding-top:20px; align-items:flex-start; text-align:left; }
     .roster{ grid-template-columns:1fr; }
-    h1.big{ font-size:clamp(38px,11vw,64px); }
-    h2.title{ font-size:clamp(26px,7vw,40px) !important; }
-    p.lead{ font-size:14px !important; max-width:100%; }
-    .codebox{ max-height:46vh; }
     #hint{ display:none; }
-    #timer{ top:auto; bottom:26px; right:20px; font-size:11px; }
-    #nav{ right:20px; bottom:78px; }
-  }
-
-  @media (max-width:520px){
-    .frame{ padding:20px 16px; }
-    .rowlist .row{ grid-template-columns:20px 1fr auto; gap:12px; }
-    table.complex{ font-size:11.5px; }
-    .dbg-arr .cell .val, .dbg-chars .ct{ width:40px; height:40px; font-size:14px; }
-    .tile, .rk-tile{ width:32px; height:38px; font-size:13px; }
   }
 
 </style>
@@ -375,6 +348,8 @@
             <div class="hn-row"><span>Natalia Sosa Torres</span><span>A01770703</span></div>
             <div class="hn-row"><span>Tabata Carolina Salinas Valdez</span><span>A01770901</span></div>
             <div class="hn-row"><span>Yael Sebastián González Hernández</span><span>A01770992</span></div>
+            <div class="hn-row"><span></span>Alessandro Daturi Mirandaz</span><span>A01773901</span></div>
+            <div class="hn-row"><span>Alan Joseph Salazar Segura</span><span>A01773491</span></div>
           </div>
         </div>
         <div class="hero-right">
@@ -389,20 +364,42 @@
           <span class="hi">DOBLE MÓDULO</span><span>—</span><span class="hi">O(1) POR CONSULTA</span><span>—</span>
           <span class="hi">ROLLING HASH</span><span>—</span><span class="hi">RABIN–KARP</span><span>—</span>
           <span class="hi">SUFFIX ARRAY</span><span>—</span><span class="hi">LCP ARRAY</span><span>—</span>
+          
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 02 — DEFINICIÓN + RELEVANCIA (fusión) -->
+  <!-- 02 — DEFINICIÓN (problema abstracto, ambas técnicas) -->
   <section class="slide dark" id="s2">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>00 / EL PROBLEMA</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>01 / DEFINICIÓN</span></div></div>
+      <div class="cols asym">
+        <div>
+          <div class="eyebrow">EL PROBLEMA ABSTRACTO</div>
+          <h2 class="title">Comparar y ordenar<br>subcadenas sin<br>leerlas letra por letra.</h2>
+          <p class="lead">Comparar dos cadenas de longitud L, carácter por carácter, cuesta O(L). Un algoritmo que repite esa comparación miles de veces —búsqueda de patrones, deduplicación, ordenar sufijos, contar subcadenas distintas— arrastra ese costo en cada paso. Dos familias de técnicas resuelven esto desde ángulos distintos: hashing de cadenas (comparación) y suffix array (orden).</p>
+        </div>
+        <div class="rowlist">
+          <div class="row anim"><div class="dot"></div><div class="lbl">Entrada</div><div class="arrow">→</div></div>
+          <div class="row anim"><div></div><div class="desc">Una cadena s de longitud n, y consultas repetidas sobre sus subcadenas o sufijos.</div><div></div></div>
+          <div class="row anim"><div class="dot"></div><div class="lbl">Salida</div><div class="arrow">→</div></div>
+          <div class="row anim"><div></div><div class="desc">Igualdad, orden lexicográfico, posición de un patrón, o longitud de la subcadena repetida más larga — en tiempo sub-lineal por consulta.</div><div></div></div>
+        </div>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p2"></div><span>02 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 03 — DEFINICIÓN (relevancia, ambas técnicas) -->
+  <section class="slide light" id="s3">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>01 / RELEVANCIA</span></div></div>
       <div class="cols">
         <div>
-          <div class="eyebrow anim">EL PROBLEMA ABSTRACTO</div>
-          <h2 class="title anim">Comparar y ordenar<br>subcadenas sin<br>leerlas letra por letra.</h2>
-          <p class="lead anim">Comparar dos subcadenas de longitud L, carácter por carácter, cuesta O(L). Repetido miles de veces —búsqueda de patrones, deduplicación, ordenar sufijos, contar subcadenas distintas— ese costo se arrastra en cada paso. Dos técnicas lo resuelven desde ángulos distintos: el <b>hashing</b> mapea cada subcadena a un entero y compara por igualdad; el <b>suffix array</b> ordena todos los sufijos y compara por orden lexicográfico real.</p>
+          <div class="eyebrow anim">POR QUÉ IMPORTAN LAS DOS</div>
+          <h2 class="title anim">Dos ideas centrales.</h2>
+          <p class="lead anim">El hashing mapea cada subcadena a un entero: cadenas iguales → mismo hash siempre; cadenas distintas → hashes distintos con altísima probabilidad. El suffix array, en cambio, ordena todos los sufijos de s lexicográficamente: no compara por igualdad, compara por orden — y de ahí se derivan búsquedas de patrón, subcadena repetida más larga y más.</p>
         </div>
         <div>
           <div class="eyebrow anim">ANTES / DESPUÉS</div>
@@ -416,25 +413,25 @@
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p2"></div><span>02 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p3"></div><span>03 / 23</span></div>
     </div>
   </section>
 
-  <!-- 03 — FUNDAMENTOS HASHING -->
+  <!-- 04 — FUNDAMENTOS HASHING: función hash + diagrama animado -->
   <section class="slide dark" id="s4">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>01 / FUNDAMENTOS</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>02 / FUNDAMENTOS</span></div></div>
       <div class="cols">
         <div>
-          <div class="eyebrow anim">FUNCIÓN HASH POLINOMIAL</div>
-          <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Rolling hash.</h2>
-          <div class="formula anim">H(s) = (s<span class="k">₀</span>·p<span class="k">⁰</span> + s<span class="k">₁</span>·p<span class="k">¹</span> + … + s<span class="k">ₙ₋₁</span>·p<span class="k">ⁿ⁻¹</span>) mod m</div>
-          <p class="lead anim" style="margin-top:16px;">p es un primo cercano al alfabeto (31, 53); m un módulo grande (1e9+7). El hash de s[l..r] sale por resta de prefijos en O(1):</p>
-          <div class="formula anim">hash(l, r) = (H[r] − H[l−1] · p<span class="k">ʳ⁻ˡ</span>) mod m</div>
+          <div class="eyebrow">FUNCIÓN HASH POLINOMIAL</div>
+          <h2 class="title" style="font-size:clamp(30px,3.6vw,52px);">Rolling hash.</h2>
+          <div class="formula">H(s) = (s<span class="k">₀</span>·p<span class="k">⁰</span> + s<span class="k">₁</span>·p<span class="k">¹</span> + … + s<span class="k">ₙ₋₁</span>·p<span class="k">ⁿ⁻¹</span>) mod m</div>
+          <p class="lead" style="margin-top:16px;">p es un primo cercano al alfabeto (31, 53); m un módulo grande (1e9+7). El hash de s[l..r] sale por resta de prefijos en O(1):</p>
+          <div class="formula">hash(l, r) = (H[r] − H[l−1] · p<span class="k">ʳ⁻ˡ</span>) mod m</div>
         </div>
         <div>
-          <div class="eyebrow anim">VENTANA DESLIZANTE SOBRE EL TEXTO</div>
-          <p class="lead anim" style="font-size:14px;">El hash de cada ventana de longitud fija se deriva del anterior sin recalcular desde cero — de ahí "rolling".</p>
+          <div class="eyebrow">VENTANA DESLIZANTE SOBRE EL TEXTO</div>
+          <p class="lead" style="font-size:14px;">El hash de cada ventana de longitud fija se deriva del anterior sin recalcular desde cero — de ahí "rolling".</p>
           <div class="swrap">
             <div class="stripe">
               <div class="window"></div>
@@ -446,124 +443,135 @@
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p3"></div><span>03 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p4"></div><span>04 / 23</span></div>
     </div>
   </section>
 
-  <!-- 04 — COMPLEJIDAD FORMAL HASHING (corregida) -->
-  <section class="slide dark" id="s5">
+  <!-- 05 — COMPLEJIDAD FORMAL HASHING -->
+  <section class="slide light" id="s5">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>01 / COMPLEJIDAD</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>02 / COMPLEJIDAD</span></div></div>
       <div class="cols">
         <div>
           <div class="eyebrow anim">ANÁLISIS FORMAL</div>
-          <h2 class="title anim" style="font-size:clamp(32px,3.8vw,56px);">Tiempo, espacio y riesgo de error.</h2>
+          <h2 class="title anim" style="font-size:clamp(32px,3.8vw,56px);">Mejor y peor caso.</h2>
           <table class="complex">
             <tr><th>Operación</th><th>Tiempo</th><th>Espacio</th></tr>
             <tr><td>Precómputo de prefijos</td><td>O(n)</td><td>O(n)</td></tr>
             <tr><td>Hash de una subcadena</td><td>O(1)</td><td>O(1)</td></tr>
-            <tr><td>Comparación de dos subcadenas</td><td>O(1)</td><td>O(1)</td></tr>
-            <tr><td>Colisión falsa (un módulo)</td><td>P ≈ 1/m</td><td>—</td></tr>
-            <tr><td>Colisión falsa (doble módulo)</td><td>P ≈ 1/m²</td><td>—</td></tr>
+            <tr><td>Comparación de dos subcadenas</td><td>O(1) amortizado</td><td>O(1)</td></tr>
+            <tr><td>Peor caso (colisión adversarial)</td><td>O(n) por comparación</td><td>O(n)</td></tr>
+            <tr><td>Mejor caso</td><td>O(1)</td><td>O(1)</td></tr>
           </table>
         </div>
         <div>
           <div class="eyebrow anim">POR QUÉ DOBLE MÓDULO</div>
-          <p class="lead anim">El hashing es O(1) en tiempo siempre — lo que cambia con la técnica no es la velocidad, sino la probabilidad de que dos subcadenas distintas produzcan el mismo hash. Con un solo (p, m) esa probabilidad es ~1/m; con dos pares independientes cae a ~1/m² — la diferencia entre una implementación de examen y una robusta frente a un juez adversarial.</p>
+          <p class="lead anim">Con un solo (p, m), la probabilidad de colisión es ~1/m. Con dos pares independientes, cae a ~1/m² — esa es la diferencia entre una implementación de examen y una robusta frente a un juez adversarial.</p>
           <div class="rowlist" style="margin-top:20px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl" style="font-size:17px;">Rigor formal</div><div class="arrow">→</div></div>
-            <div class="row anim"><div></div><div class="desc">Una colisión no cuesta tiempo extra, cuesta corrección: el algoritmo sigue siendo O(1), pero puede dar un falso positivo si el módulo es fijo y conocido por un adversario.</div><div></div></div>
+            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">Rigor formal</div><div class="arrow">→</div></div>
+            <div class="row anim"><div></div><div class="desc">El peor caso solo aparece si el adversario conoce p y m; aleatorizarlos en tiempo de ejecución lo neutraliza.</div><div></div></div>
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p4"></div><span>04 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p5"></div><span>05 / 23</span></div>
     </div>
   </section>
 
-  <!-- 05 — FORTALEZAS + LIMITACIONES HASHING (fusión) -->
-  <section class="slide light" id="s6">
+  <!-- 06 — FORTALEZAS HASHING -->
+  <section class="slide dark" id="s6">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>02 / BALANCE</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>03 / FORTALEZAS</span></div></div>
       <div>
-      <h2 class="title anim">Fortalezas y limitaciones.</h2>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl">Velocidad</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Comparación de subcadenas en O(1) tras un único precómputo O(n).</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Simplicidad</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Mucho más simple de implementar y depurar que Suffix Array o Suffix Automaton.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Memoria</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Solo dos arreglos de tamaño n — bajo overhead frente a estructuras de sufijos.</div><div></div></div>
-          </div>
-        </div>
-        <div>
-          <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Probabilístico</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Existe riesgo, aunque pequeño, de colisión falsa; nunca es 100% determinístico.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Sin orden</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">No ordena subcadenas lexicográficamente — ahí Suffix Array es la alternativa correcta.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Hackeable</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Con módulo fijo y conocido, un adversario puede construir colisiones deliberadas.</div><div></div></div>
-          </div>
+        <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
+        <h2 class="title anim">Fortalezas.</h2>
+        <div class="rowlist" style="margin-top:10px;">
+          <div class="row anim"><div class="dot"></div><div class="lbl">Velocidad</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Comparación de subcadenas en O(1) tras un único precómputo O(n).</div><div></div></div>
+          <div class="row anim"><div class="dot"></div><div class="lbl">Simplicidad</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Mucho más simple de implementar y depurar que Suffix Array o Suffix Automaton.</div><div></div></div>
+          <div class="row anim"><div class="dot"></div><div class="lbl">Memoria</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Solo dos arreglos de tamaño n — bajo overhead frente a estructuras de sufijos.</div><div></div></div>
         </div>
       </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p5"></div><span>05 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p6"></div><span>06 / 23</span></div>
     </div>
   </section>
 
-  <!-- 06 — APLICACIONES HASHING (fusión de 2 casos) -->
+  <!-- 07 — LIMITACIONES HASHING -->
+  <section class="slide light" id="s7">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>03 / LIMITACIONES</span></div></div>
+      <div>
+        <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
+        <h2 class="title anim">Limitaciones.</h2>
+        <div class="rowlist" style="margin-top:10px;">
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Probabilístico</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">Existe riesgo, aunque pequeño, de colisión falsa; nunca es 100% determinístico.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Sin orden</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">No ordena subcadenas lexicográficamente — ahí Suffix Array es la alternativa correcta.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Hackeable</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">Con módulo fijo y conocido, un adversario puede construir colisiones deliberadas.</div><div></div></div>
+        </div>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p7"></div><span>07 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 08 — APLICACIONES HASHING: CASO 01 -->
   <section class="slide dark" id="s8">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>02 / APLICACIONES</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot"></span>CASO 01</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Búsqueda de patrones<br>— Rabin–Karp</h2>
-          <p class="lead anim" style="font-size:13.5px;">Se hashea el patrón "ABRA" y cada ventana de "ABRACADABRA"; comparar dos hashes es O(1), así que recorrer todo el texto cuesta O(n).</p>
-          <div class="rk-wrap" style="transform:scale(.78); transform-origin:left top;">
-            <div class="rk-track">
-              <div class="rk-window"></div>
-              <div class="rk-tile">A</div><div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
-              <div class="rk-tile">C</div><div class="rk-tile">A</div><div class="rk-tile">D</div><div class="rk-tile">A</div>
-              <div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
-            </div>
-            <div class="rk-status">
-              <span class="s1">posición 0 → hash coincide ✓</span>
-              <span class="s2">posición 3 → hash distinto</span>
-              <span class="s3">posición 7 → hash coincide ✓</span>
-            </div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>03 / APLICACIONES</span></div></div>
+      <div>
+        <div class="pill anim" style="margin-bottom:16px;"><span class="dot"></span>CASO 01</div>
+        <h2 class="title anim" style="font-size:clamp(32px,4vw,58px);">Búsqueda de patrones<br>— Rabin–Karp</h2>
+        <p class="lead anim" style="font-size:14.5px;">Se hashea el patrón "ABRA" y cada ventana de "ABRACADABRA"; comparar dos hashes es O(1), así que recorrer todo el texto cuesta O(n).</p>
+        <div class="rk-wrap">
+          <div class="rk-track">
+            <div class="rk-window"></div>
+            <div class="rk-tile">A</div><div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
+            <div class="rk-tile">C</div><div class="rk-tile">A</div><div class="rk-tile">D</div><div class="rk-tile">A</div>
+            <div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
           </div>
-        </div>
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--orange)"></span>CASO 02</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Longest Common /<br>Palindromic Substring</h2>
-          <p class="lead anim" style="font-size:13.5px;">Se busca la longitud L más grande que cumple la propiedad, probando valores de L por búsqueda binaria; cada prueba compara hashes en O(n), total O(n log n).</p>
-          <div class="bs-wrap" style="margin-top:22px;">
-            <div class="bs-track">
-              <div class="bs-range"></div>
-              <div class="bs-mid"></div>
-            </div>
-            <div class="bs-status">
-              <span class="b1">L = 8 → ¿existe coincidencia de esa longitud?</span>
-              <span class="b2">no → probar L = 4</span>
-              <span class="b3">sí → probar L = 6</span>
-              <span class="b4">no cabe más → respuesta: L = 5</span>
-            </div>
+          <div class="rk-status">
+            <span class="s1">posición 0 → hash coincide ✓</span>
+            <span class="s2">posición 3 → hash distinto</span>
+            <span class="s3">posición 7 → hash coincide ✓</span>
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p6"></div><span>06 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p8"></div><span>08 / 23</span></div>
     </div>
   </section>
 
-  <!-- 07 — CÓDIGO HASHING -->
+  <!-- 09 — APLICACIONES HASHING: CASO 02 -->
+  <section class="slide dark" id="s8b">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>03 / APLICACIONES</span></div></div>
+      <div>
+        <div class="pill anim" style="margin-bottom:16px;"><span class="dot"></span>CASO 02</div>
+        <h2 class="title anim" style="font-size:clamp(32px,4vw,58px);">Longest Common /<br>Palindromic Substring</h2>
+        <p class="lead anim" style="font-size:14.5px;">Se busca la longitud L más grande que cumple la propiedad, probando valores de L por búsqueda binaria; cada prueba compara hashes en O(n), total O(n log n).</p>
+        <div class="bs-wrap">
+          <div class="bs-track">
+            <div class="bs-range"></div>
+            <div class="bs-mid"></div>
+          </div>
+          <div class="bs-status">
+            <span class="b1">L = 8 → ¿existe coincidencia de esa longitud?</span>
+            <span class="b2">no → probar L = 4</span>
+            <span class="b3">sí → probar L = 6</span>
+            <span class="b4">no cabe más → respuesta: L = 5</span>
+          </div>
+        </div>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p8b"></div><span>09 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 10 — CÓDIGO HASHING -->
   <section class="slide light" id="s9">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>03 / IMPLEMENTACIÓN</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>04 / IMPLEMENTACIÓN</span></div></div>
       <div class="cols asym">
         <div class="codebox"><pre><span class="codeline c1" style="animation-delay:.02s"># StringHasher — doble módulo, O(n) precómputo, O(1) consulta</span>
 <span class="codeline" style="animation-delay:.06s"><span class="c3">class</span> <span class="c4">StringHasher</span>:</span>
@@ -599,20 +607,19 @@
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p7"></div><span>07 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p9"></div><span>10 / 23</span></div>
     </div>
   </section>
 
-  <!-- 08 — DEBUG HASHING PASO A PASO (fusión: construcción + consulta) -->
+  <!-- 11 — DEBUG HASHING PASO A PASO: CONSTRUCCIÓN DEL ARREGLO -->
   <section class="slide dark" id="s9b">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>03 / DEBUG</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>04 / DEBUG</span></div></div>
       <div>
-      <div class="eyebrow anim">PASO A PASO — CONSTRUCCIÓN Y CONSULTA</div>
-      <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">Así se llena y se consulta h[ ].</h2>
-      <p class="lead anim" style="font-size:14px;">s = "ABA", p = 31, m = 97. Cada carácter empuja h[i] = (h[i-1]·p + valor) mod m. Pedir hash(1, 3) = hash("BA") solo resta contra el arreglo ya construido, sin releer "BA".</p>
-      <div class="cols" style="margin-top:26px;">
-        <div>
+        <div class="eyebrow anim">PASO A PASO — DENTRO DEL BUCLE</div>
+        <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Así se llena h[ ].</h2>
+        <p class="lead anim" style="font-size:14.5px;">s = "ABA", p = 31, m = 97. Cada carácter empuja un nuevo valor al arreglo: h[i] = (h[i-1]·p + valor) mod m.</p>
+        <div style="margin-top:34px;">
           <div class="dbg-chars">
             <div class="ct anim hi">A</div>
             <div class="ct anim hi">B</div>
@@ -625,26 +632,40 @@
             <div class="cell anim hi"><div class="idx">h[3]</div><div class="val">54</div></div>
           </div>
         </div>
-        <div>
-          <div class="dbg-arr">
-            <div class="cell anim"><div class="idx">h[3]</div><div class="val" style="border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset;">54</div></div>
-            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">−</div></div>
-            <div class="cell anim"><div class="idx">h[1]</div><div class="val" style="border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset;">1</div></div>
-            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">×</div></div>
-            <div class="cell anim"><div class="idx">p²mod m</div><div class="val">88</div></div>
-          </div>
-          <div class="dbg-eq anim">(54 − 1×88) mod 97 = <b>63</b> = hash("BA") — un solo paso, sin tocar "B" ni "A" de nuevo.</div>
-        </div>
       </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p8"></div><span>08 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p9b"></div><span>11 / 23</span></div>
     </div>
   </section>
 
-  <!-- 09 — CASOS DE PRUEBA HASHING -->
-  <section class="slide light" id="s10">
+  <!-- 12 — DEBUG HASHING PASO A PASO: CONSULTA O(1) -->
+  <section class="slide light" id="s9c">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>03 / PRUEBAS</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>04 / DEBUG</span></div></div>
+      <div>
+        <div class="eyebrow anim">PASO A PASO — get_hash(1, 3)</div>
+        <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Pedir el hash de "BA".</h2>
+        <p class="lead anim" style="font-size:14.5px;">Sin recorrer "BA" letra por letra: se resta contra el arreglo ya construido.</p>
+        <div style="margin-top:34px;">
+          <div class="dbg-arr">
+            <div class="cell anim"><div class="idx">h[3]</div><div class="val" style="border-color:var(--ink); box-shadow:0 0 0 1px var(--ink) inset;">54</div></div>
+            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">−</div></div>
+            <div class="cell anim"><div class="idx">h[1]</div><div class="val" style="border-color:var(--ink); box-shadow:0 0 0 1px var(--ink) inset;">1</div></div>
+            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">×</div></div>
+            <div class="cell anim"><div class="idx">p²mod m</div><div class="val">88</div></div>
+            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">=</div></div>
+            <div class="cell anim"><div class="idx">hash("BA")</div><div class="val" style="border-color:var(--ink); color:var(--ink); box-shadow:0 0 0 1px var(--ink) inset;">63</div></div>
+          </div>
+          <div class="dbg-eq anim" style="color:rgba(10,14,26,.7);">(54 − 1×88) mod 97 = <b style="color:var(--ink); font-weight:700;">63</b> — un solo paso, sin tocar "B" ni "A" de nuevo.</div>
+        </div>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p9c"></div><span>12 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 13 — CASOS DE PRUEBA HASHING -->
+  <section class="slide dark" id="s10">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>04 / PRUEBAS</span></div></div>
       <div class="cols">
         <div>
           <div class="eyebrow anim">VALIDACIÓN</div>
@@ -661,14 +682,14 @@
           <div class="ln ok" style="animation-delay:.95s">False <span class="tag">✓</span></div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p9"></div><span>09 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p10"></div><span>13 / 23</span></div>
     </div>
   </section>
 
-  <!-- 10 — FUNDAMENTOS SUFFIX ARRAY -->
-  <section class="slide dark" id="s12">
+  <!-- 14 — FUNDAMENTOS SUFFIX ARRAY -->
+  <section class="slide light" id="s12">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>04 / FUNDAMENTOS</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>05 / FUNDAMENTOS</span></div></div>
       <div class="cols">
         <div>
           <div class="eyebrow anim">DEFINICIÓN</div>
@@ -689,122 +710,132 @@
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p10"></div><span>10 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p12"></div><span>14 / 23</span></div>
     </div>
   </section>
 
-  <!-- 11 — COMPLEJIDAD FORMAL SUFFIX ARRAY (corregida) -->
-  <section class="slide light" id="s13">
+  <!-- 15 — COMPLEJIDAD FORMAL SUFFIX ARRAY -->
+  <section class="slide dark" id="s13">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>04 / COMPLEJIDAD</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>05 / COMPLEJIDAD</span></div></div>
       <div class="cols">
         <div>
           <div class="eyebrow anim">ANÁLISIS FORMAL</div>
-          <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">Construcción y consulta.</h2>
+          <h2 class="title anim" style="font-size:clamp(32px,3.8vw,56px);">Construcción y consulta.</h2>
           <table class="complex">
             <tr><th>Operación</th><th>Tiempo</th><th>Espacio</th></tr>
             <tr><td>Construcción ingenua (ordenar sufijos)</td><td>O(n² log n)</td><td>O(n²)</td></tr>
-            <tr><td>Duplicación de rango — sort() (este código)</td><td>O(n log² n)</td><td>O(n)</td></tr>
-            <tr><td>Duplicación de rango — con radix sort</td><td>O(n log n)</td><td>O(n)</td></tr>
+            <tr><td>Duplicación de rango (Manber–Myers)</td><td>O(n log n)</td><td>O(n)</td></tr>
             <tr><td>Construcción SA-IS (lineal)</td><td>O(n)</td><td>O(n)</td></tr>
             <tr><td>LCP array (algoritmo de Kasai)</td><td>O(n)</td><td>O(n)</td></tr>
             <tr><td>Búsqueda de patrón (binary search)</td><td>O(m log n)</td><td>O(1) extra</td></tr>
           </table>
         </div>
         <div>
-          <div class="eyebrow anim">NOTA DE RIGOR: SORT VS RADIX SORT</div>
-          <p class="lead anim" style="font-size:14.5px;">Nuestro código ordena cada iteración con sort() genérico (comparación): O(n log n) por iteración × O(log n) iteraciones = <b>O(n log² n)</b>. El Manber–Myers "clásico" en O(n log n) reemplaza ese sort por un radix sort sobre los pares (rank, next-rank), que ordena cada iteración en O(n).</p>
-          <div class="rowlist" style="margin-top:16px;">
+          <div class="eyebrow anim">POR QUÉ IMPORTA EL LCP</div>
+          <p class="lead anim">El suffix array por sí solo ya cuesta O(n log n) construirlo; el LCP array (longest common prefix entre sufijos consecutivos) se calcula en O(n) adicional con el algoritmo de Kasai, y desbloquea consultas como la subcadena repetida más larga sin costo extra por consulta.</p>
+          <div class="rowlist" style="margin-top:20px;">
             <div class="row anim"><div class="dot"></div><div class="lbl" style="font-size:17px;">Determinismo</div><div class="arrow">→</div></div>
-            <div class="row anim"><div></div><div class="desc">A diferencia del hashing, el resultado siempre es exacto: no hay probabilidad de error.</div><div></div></div>
+            <div class="row anim"><div></div><div class="desc">A diferencia del hashing, el resultado es siempre exacto: no hay probabilidad de error.</div><div></div></div>
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p11"></div><span>11 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p13"></div><span>15 / 23</span></div>
     </div>
   </section>
 
-  <!-- 12 — FORTALEZAS + LIMITACIONES SUFFIX ARRAY (fusión) -->
-  <section class="slide dark" id="s14">
+  <!-- 16 — FORTALEZAS SUFFIX ARRAY -->
+  <section class="slide light" id="s14">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>05 / BALANCE</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>06 / FORTALEZAS</span></div></div>
       <div>
-      <h2 class="title anim">Fortalezas y limitaciones.</h2>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl">Determinístico</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Sin probabilidad de colisión: el resultado es siempre exacto, sin importar el adversario.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Orden real</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Permite comparar subcadenas lexicográficamente, algo que el hashing no resuelve.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Versátil con LCP</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Subcadena repetida más larga, conteo de subcadenas distintas y LCS entre dos strings, todo en O(n) adicional.</div><div></div></div>
-          </div>
-        </div>
-        <div>
-          <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Implementación</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Mucho más código que un rolling hash; la versión lineal (SA-IS) es notoriamente intrincada.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Overhead de memoria</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Requiere varios arreglos auxiliares (rank, tmp, LCP) además del propio SA.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Consulta más costosa</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Buscar un patrón cuesta O(m log n), frente al O(1) del hashing tras precómputo.</div><div></div></div>
-          </div>
+        <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
+        <h2 class="title anim">Fortalezas.</h2>
+        <div class="rowlist" style="margin-top:10px;">
+          <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl">Determinístico</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Sin probabilidad de colisión: el resultado es siempre exacto, sin importar el adversario.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl">Orden real</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Permite comparar subcadenas lexicográficamente, algo que el hashing no resuelve.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl">Versátil con LCP</div><div class="arrow">+</div></div>
+          <div class="row anim"><div></div><div class="desc">Subcadena repetida más larga, conteo de subcadenas distintas y LCS entre dos strings, todo en O(n) adicional.</div><div></div></div>
         </div>
       </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p12"></div><span>12 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p14"></div><span>16 / 23</span></div>
     </div>
   </section>
 
-  <!-- 13 — APLICACIONES SUFFIX ARRAY (fusión de 2 casos) -->
-  <section class="slide light" id="s16">
+  <!-- 17 — LIMITACIONES SUFFIX ARRAY -->
+  <section class="slide dark" id="s15">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>05 / APLICACIONES</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--ink)"></span>CASO 01</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Búsqueda de patrones<br>— binary search sobre SA</h2>
-          <p class="lead anim" style="font-size:13.5px;">Como los sufijos están ordenados, buscar si un patrón p aparece en s equivale a hallar su rango en el SA con dos búsquedas binarias, comparando p contra sufijos: costo O(m log n).</p>
-          <div class="bs-wrap">
-            <div class="bs-track">
-              <div class="bs-range"></div>
-              <div class="bs-mid"></div>
-            </div>
-            <div class="bs-status">
-              <span class="b1">medio del SA → comparar "ANA" con el sufijo</span>
-              <span class="b2">"ANA" &lt; sufijo → buscar mitad izquierda</span>
-              <span class="b3">"ANA" &gt; sufijo → buscar mitad derecha</span>
-              <span class="b4">rango encontrado → todas las ocurrencias son contiguas en SA</span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--orange)"></span>CASO 02</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">LCP array — subcadena<br>repetida más larga</h2>
-          <p class="lead anim" style="font-size:13.5px;">El valor máximo del LCP array es, directamente, la longitud de la subcadena repetida más larga. El conteo de subcadenas distintas sale de n(n+1)/2 menos la suma del LCP — ambas en O(n) tras construir SA y LCP.</p>
-          <div class="suflist" style="max-width:480px;">
-            <div class="sufrow anim"><div class="si">SA[1]</div><div class="sv">ANA</div><div class="sr">LCP=1</div></div>
-            <div class="sufrow anim"><div class="si">SA[2]</div><div class="sv">ANANA</div><div class="sr" style="color:var(--orange); font-weight:600;">LCP=3</div></div>
-            <div class="sufrow anim"><div class="si">SA[3]</div><div class="sv">BANANA</div><div class="sr">LCP=0</div></div>
-            <div class="sufrow anim"><div class="si">SA[4]</div><div class="sv">NA</div><div class="sr">LCP=0</div></div>
-            <div class="sufrow anim"><div class="si">SA[5]</div><div class="sv">NANA</div><div class="sr">LCP=2</div></div>
-          </div>
-          <p class="lead anim" style="font-size:12.5px; margin-top:10px; opacity:.7;">max(LCP) = 3 → la subcadena repetida más larga en "BANANA" es "ANA".</p>
+      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / LIMITACIONES</span></div></div>
+      <div>
+        <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
+        <h2 class="title anim">Limitaciones.</h2>
+        <div class="rowlist" style="margin-top:10px;">
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Complejidad de implementación</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">Mucho más código que un rolling hash; la versión lineal (SA-IS) es notoriamente intrincada.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Overhead de memoria</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">Requiere varios arreglos auxiliares (rank, tmp, LCP) además del propio SA.</div><div></div></div>
+          <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Consulta más costosa</div><div class="arrow">−</div></div>
+          <div class="row anim"><div></div><div class="desc">Buscar un patrón cuesta O(m log n), frente al O(1) amortizado del hashing tras precómputo.</div><div></div></div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p13"></div><span>13 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p15"></div><span>17 / 23</span></div>
     </div>
   </section>
 
-  <!-- 14 — CÓDIGO SUFFIX ARRAY (corregida) -->
-  <section class="slide dark" id="s17">
+  <!-- 18 — APLICACIONES SUFFIX ARRAY: CASO 01 -->
+  <section class="slide dark" id="s16">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / IMPLEMENTACIÓN</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / APLICACIONES</span></div></div>
+      <div>
+        <div class="pill anim" style="margin-bottom:16px;"><span class="dot"></span>CASO 01</div>
+        <h2 class="title anim" style="font-size:clamp(32px,4vw,58px);">Búsqueda de patrones<br>— binary search sobre SA</h2>
+        <p class="lead anim" style="font-size:14.5px;">Como los sufijos están ordenados, buscar si un patrón p aparece en s equivale a hallar su rango en el SA mediante dos búsquedas binarias, comparando p contra sufijos: costo O(m log n).</p>
+        <div class="bs-wrap">
+          <div class="bs-track">
+            <div class="bs-range"></div>
+            <div class="bs-mid"></div>
+          </div>
+          <div class="bs-status">
+            <span class="b1">medio del SA → comparar "ANA" con el sufijo</span>
+            <span class="b2">"ANA" &lt; sufijo → buscar mitad izquierda</span>
+            <span class="b3">"ANA" &gt; sufijo → buscar mitad derecha</span>
+            <span class="b4">rango encontrado → todas las ocurrencias son contiguas en SA</span>
+          </div>
+        </div>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p16"></div><span>18 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 19 — APLICACIONES SUFFIX ARRAY: CASO 02 -->
+  <section class="slide dark" id="s16b">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / APLICACIONES</span></div></div>
+      <div>
+        <div class="pill anim" style="margin-bottom:16px;"><span class="dot"></span>CASO 02</div>
+        <h2 class="title anim" style="font-size:clamp(32px,4vw,58px);">LCP array — subcadena<br>repetida más larga</h2>
+        <p class="lead anim" style="font-size:14.5px;">El valor máximo del LCP array es, directamente, la longitud de la subcadena repetida más larga. Y el conteo de subcadenas distintas sale de n(n+1)/2 menos la suma del LCP — ambas en O(n) tras construir SA y LCP.</p>
+        <div class="suflist" style="max-width:520px;">
+          <div class="sufrow anim"><div class="si">SA[1]</div><div class="sv">ANA</div><div class="sr">LCP=1</div></div>
+          <div class="sufrow anim"><div class="si">SA[2]</div><div class="sv">ANANA</div><div class="sr" style="color:var(--lime); font-weight:600;">LCP=3</div></div>
+          <div class="sufrow anim"><div class="si">SA[3]</div><div class="sv">BANANA</div><div class="sr">LCP=0</div></div>
+          <div class="sufrow anim"><div class="si">SA[4]</div><div class="sv">NA</div><div class="sr">LCP=0</div></div>
+          <div class="sufrow anim"><div class="si">SA[5]</div><div class="sv">NANA</div><div class="sr">LCP=2</div></div>
+        </div>
+        <p class="lead anim" style="font-size:13px; margin-top:14px; opacity:.7;">max(LCP) = 3 → la subcadena repetida más larga en "BANANA" es "ANA".</p>
+      </div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p16b"></div><span>19 / 23</span></div>
+    </div>
+  </section>
+
+  <!-- 20 — CÓDIGO SUFFIX ARRAY -->
+  <section class="slide light" id="s17">
+    <div class="frame">
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>07 / IMPLEMENTACIÓN</span></div></div>
       <div class="cols asym">
-        <div class="codebox"><pre><span class="codeline c1" style="animation-delay:.02s"># Suffix array por duplicación de rango — O(n log² n) con sort()</span>
+        <div class="codebox"><pre><span class="codeline c1" style="animation-delay:.02s"># Suffix array por duplicación de rango — O(n log n)</span>
 <span class="codeline" style="animation-delay:.06s"><span class="c3">def</span> <span class="c4">build_suffix_array</span>(s):</span>
 <span class="codeline" style="animation-delay:.10s">    n = len(s)</span>
 <span class="codeline" style="animation-delay:.14s">    sa = list(range(n))</span>
@@ -836,28 +867,28 @@
 <span class="codeline" style="animation-delay:1.19s">    <span class="c3">return</span> lcp</span></pre></div>
         <div>
           <div class="eyebrow anim">LECTURA DEL CÓDIGO</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,40px);">Dos funciones, dos complejidades.</h2>
+          <h2 class="title anim" style="font-size:clamp(28px,3.2vw,44px);">Dos funciones, dos complejidades.</h2>
           <div class="rowlist">
-            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">build_suffix_array</div><div class="arrow">O(n log² n)</div></div>
-            <div class="row anim"><div></div><div class="desc">log n iteraciones, cada una ordena con sort() en O(n log n). Con radix sort sobre (rank, next) bajaría a O(n log n) total.</div><div></div></div>
+            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">build_suffix_array</div><div class="arrow">O(n log n)</div></div>
+            <div class="row anim"><div></div><div class="desc">log n iteraciones, cada una ordena en O(n log n) usando ranks de la iteración anterior.</div><div></div></div>
             <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">kasai_lcp</div><div class="arrow">O(n)</div></div>
             <div class="row anim"><div></div><div class="desc">Explota que h nunca baja más de 1 entre iteraciones consecutivas — amortizado lineal.</div><div></div></div>
           </div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p14"></div><span>14 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p17"></div><span>20 / 23</span></div>
     </div>
   </section>
 
-  <!-- 15 — DEBUG SUFFIX ARRAY PASO A PASO -->
-  <section class="slide light" id="s17b">
+  <!-- 21 — DEBUG SUFFIX ARRAY PASO A PASO -->
+  <section class="slide dark" id="s17b">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>06 / DEBUG</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>07 / DEBUG</span></div></div>
       <div>
         <div class="eyebrow anim">PASO A PASO — ORDENANDO "BANANA"</div>
-        <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">De sufijos crudos a SA.</h2>
-        <p class="lead anim" style="font-size:14px;">Con k=1 se ordena por 2 caracteres; con k=2 por 4; con k=4 ya se cubren los 6 caracteres y el orden queda estable.</p>
-        <div style="margin-top:26px;">
+        <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">De sufijos crudos a SA.</h2>
+        <p class="lead anim" style="font-size:14.5px;">Con k=1 se ordena por 2 caracteres; con k=2 por 4; con k=4 ya se cubren los 6 caracteres y el orden queda estable.</p>
+        <div style="margin-top:30px;">
           <div class="dbg-arr">
             <div class="cell anim"><div class="idx">rank inicial</div><div class="val">B</div></div>
             <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">A</div></div>
@@ -869,14 +900,14 @@
           <div class="dbg-eq anim">tras k=1, k=2, k=4 → <b>SA = [5, 3, 1, 0, 4, 2]</b> (A, ANA, ANANA, BANANA, NA, NANA)</div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p15"></div><span>15 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p17b"></div><span>21 / 23</span></div>
     </div>
   </section>
 
-  <!-- 16 — CASOS DE PRUEBA SUFFIX ARRAY -->
-  <section class="slide dark" id="s18">
+  <!-- 22 — CASOS DE PRUEBA SUFFIX ARRAY -->
+  <section class="slide light" id="s18">
     <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / PRUEBAS</span></div></div>
+      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>07 / PRUEBAS</span></div></div>
       <div class="cols">
         <div>
           <div class="eyebrow anim">VALIDACIÓN</div>
@@ -892,11 +923,11 @@
           <div class="ln ok" style="animation-delay:.80s">[1, 3] <span class="tag">✓ ocurre en las posiciones 1 y 3</span></div>
         </div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p16"></div><span>16 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p18"></div><span>22 / 23</span></div>
     </div>
   </section>
 
-  <!-- 17 — CIERRE: GRACIAS -->
+  <!-- 23 — CIERRE: GRACIAS -->
   <section class="slide dark" id="s11">
     <div class="frame">
       <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>CIERRE</span></div></div>
@@ -918,13 +949,12 @@
         <div class="keycap"           style="top:45%; left:4%;   width:50px; height:50px; font-size:18px; --rot:-6deg;  animation-delay:1.2s;">P</div>
         <div class="keycap lime"      style="top:48%; left:93%;  width:52px; height:52px; font-size:18px; --rot:7deg;   animation-delay:.9s;">O(1)</div>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p17"></div><span>17 / 17</span></div>
+      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p11"></div><span>23 / 23</span></div>
     </div>
   </section>
 
 </div>
 
-<div id="timer">00:00 / 10:00</div>
 <div id="nav"><div class="navbtn" id="prevBtn">←</div><div class="navbtn" id="nextBtn">→</div></div>
 <div id="hint">USA ← → O CLIC PARA NAVEGAR</div>
 
@@ -957,35 +987,6 @@
   });
 
   renderProgress();
-
-  // ---- reloj de práctica: cuenta hacia el límite de 10 minutos de la rúbrica ----
-  const LIMIT = 10*60;
-  let startTime = null;
-  const timerEl = document.getElementById('timer');
-
-  function fmt(s){
-    const m = Math.floor(Math.abs(s)/60), r = Math.floor(Math.abs(s)%60);
-    return (s<0?'-':'')+String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
-  }
-
-  function startClock(){
-    if(startTime) return;
-    startTime = Date.now();
-    tick();
-  }
-
-  function tick(){
-    if(!startTime) return;
-    const elapsed = (Date.now()-startTime)/1000;
-    timerEl.textContent = fmt(elapsed)+' / 10:00';
-    timerEl.classList.toggle('warn', elapsed >= LIMIT-90 && elapsed < LIMIT);
-    timerEl.classList.toggle('over', elapsed >= LIMIT);
-    requestAnimationFrame(tick);
-  }
-
-  // arranca el reloj en la primera interacción (clic o flecha), no al cargar la página
-  window.addEventListener('keydown', startClock, { once:true });
-  document.getElementById('deck').addEventListener('click', startClock, { once:true });
 </script>
 
 </body>
