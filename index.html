@@ -3,993 +3,698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hash String — Suffix Array — Equipo 5-8</title>
+<title>Palíndromos en el genoma — Manacher vs Suffix Array</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Big+Shoulders+Text:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
+:root{
+  --bg-light:#F5F5F3;
+  --bg-dark:#0A0E1A;
+  --lime:#C6FF00;
+  --orange:#FF5A1F;
+  --ink:#0A0E1A;
+  --paper:#FFFFFF;
+  --line-dark: rgba(245,245,243,0.16);
+  --line-light: rgba(10,14,26,0.14);
+  --disp: 'Big Shoulders Display', sans-serif;
+  --text: 'Big Shoulders Text', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;background:var(--ink);}
+body{
+  font-family:var(--text);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--lime);color:var(--ink);}
 
-  :root{
-    --bg-light:#F5F5F3;
-    --bg-dark:#0A0E1A;
-    --ink:#0A0E1A;
-    --paper:#F5F5F3;
-    --lime:#C6FF00;
-    --orange:#FF5C1A;
-    --line:rgba(10,14,26,0.14);
-    --line-inv:rgba(245,245,243,0.18);
-    --display: 'Bebas Neue', 'Archivo', sans-serif;
-    --body: 'Archivo', sans-serif;
-    --mono: 'JetBrains Mono', monospace;
-  }
+/* ---------- deck shell ---------- */
+#deck{
+  position:relative;
+  width:100vw;height:100vh;
+  overflow:hidden;
+}
+.track{
+  height:100%;
+  display:flex;
+  transition:transform .85s cubic-bezier(.65,0,.24,1);
+  will-change:transform;
+}
+.slide{
+  flex:0 0 100vw;
+  height:100vh;
+  position:relative;
+  overflow:hidden;
+}
+.slide.dark{ background:var(--bg-dark); color:var(--paper); }
+.slide.light{ background:var(--bg-light); color:var(--ink); }
 
-  *{ margin:0; padding:0; box-sizing:border-box; }
+.inner{
+  height:100%;
+  max-width:1400px;
+  margin:0 auto;
+  padding:7vh 6vw 9vh;
+  display:grid;
+  grid-template-columns:1fr;
+}
 
-  html,body{ background:var(--bg-dark); font-family:var(--body); color:var(--ink); overflow-x:hidden; }
-  ::selection{ background:var(--lime); color:var(--ink); }
+/* entrance choreography: only the active slide's children animate in */
+.reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1); }
+.slide.active .reveal{ opacity:1; transform:translateY(0); }
+.slide.active .r1{ transition-delay:.05s; }
+.slide.active .r2{ transition-delay:.15s; }
+.slide.active .r3{ transition-delay:.25s; }
+.slide.active .r4{ transition-delay:.35s; }
+.slide.active .r5{ transition-delay:.45s; }
+.slide.active .r6{ transition-delay:.55s; }
 
-  #deck{ width:100vw; height:100vh; position:relative; }
+/* ---------- typography ---------- */
+h1,h2,h3{ font-family:var(--disp); text-transform:uppercase; letter-spacing:-0.01em; line-height:0.92; }
+.eyebrow{
+  font-family:var(--text); font-weight:500; font-size:13px;
+  color:var(--lime); letter-spacing:.02em;
+  display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{ content:""; width:7px;height:7px;border-radius:50%; background:var(--lime); flex:none; }
+.slide.light .eyebrow{ color:#7A9900; }
+.slide.light .eyebrow::before{ background:#7A9900; }
 
-  .slide{ position:absolute; inset:0; width:100vw; height:100vh; display:none; opacity:0; }
-  .slide.active{ display:block; opacity:1; animation: slideIn .6s cubic-bezier(.22,.8,.32,1); }
+p.lead{ font-family:var(--text); font-weight:300; font-size:clamp(16px,1.7vw,21px); line-height:1.55; max-width:52ch; }
+.slide.dark p.lead{ color:rgba(245,245,243,0.82); }
+.slide.light p.lead{ color:rgba(10,14,26,0.75); }
 
-  @keyframes slideIn{ from{ opacity:0; transform:translateY(22px) scale(.99); } to{ opacity:1; transform:translateY(0) scale(1); } }
+/* ---------- rows / dividers (billboard-live list pattern) ---------- */
+.rows{ display:flex; flex-direction:column; }
+.row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 2px; border-bottom:1px solid var(--line-dark);
+  gap:24px;
+}
+.slide.light .row{ border-bottom:1px solid var(--line-light); }
+.row .row-name{ font-family:var(--disp); font-weight:800; font-size:clamp(20px,2.4vw,32px); text-transform:uppercase; }
+.row .row-meta{ font-family:var(--mono); font-size:13px; opacity:.6; white-space:nowrap; }
+.row .row-arrow{ font-size:22px; color:var(--lime); flex:none; }
+.slide.light .row .row-arrow{ color:#7A9900; }
 
-  .slide.light{ background:var(--bg-light); color:var(--ink); }
-  .slide.dark{ background:var(--bg-dark); color:var(--paper); }
+/* ---------- pill / circular buttons ---------- */
+.pill{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 22px; border-radius:999px;
+  font-family:var(--text); font-weight:600; font-size:13px;
+  border:1px solid currentColor;
+}
+.circle-cta{
+  width:128px;height:128px;border-radius:50%;
+  background:var(--lime); color:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; font-family:var(--disp); font-weight:800; font-size:13px;
+  text-transform:uppercase; line-height:1.1; gap:6px;
+  box-shadow:0 18px 40px -12px rgba(198,255,0,.35);
+}
 
-  .frame{ height:100%; width:100%; display:grid; grid-template-rows:auto 1fr auto; padding:52px 64px; }
-  .frame > *:not(.topbar):not(.footbar){ align-self:center; width:100%; }
+/* ---------- nav chrome (persistent header) ---------- */
+.chrome{
+  position:fixed; inset:0; pointer-events:none; z-index:40;
+}
+.chrome-top{
+  position:absolute; top:0; left:0; right:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:28px 6vw 0;
+  font-family:var(--mono); font-size:12px; letter-spacing:.03em;
+  color:var(--paper); mix-blend-mode:difference;
+}
+.brand{ font-family:var(--disp); font-weight:800; font-size:16px; text-transform:uppercase; letter-spacing:.02em; }
+.count{ font-variant-numeric:tabular-nums; }
 
-  .topbar{ display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:12px; letter-spacing:.02em; }
-  .topbar .mark{ display:flex; align-items:center; gap:10px; }
-  .dot{ width:8px; height:8px; border-radius:50%; background:var(--lime); flex:none; }
-  .topbar .side{ display:flex; gap:28px; }
-  .light .topbar{ color:rgba(10,14,26,.55); }
-  .dark .topbar{ color:rgba(245,245,243,.55); }
+.dots{
+  position:absolute; top:32px; left:50%; transform:translateX(-50%);
+  display:flex; gap:8px; pointer-events:auto;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,.3);
+  cursor:pointer; transition:background .3s, transform .3s;
+  mix-blend-mode:difference;
+}
+.dot.on{ background:#fff; transform:scale(1.5); }
 
-  .footbar{ display:flex; justify-content:space-between; align-items:flex-end; font-family:var(--mono); font-size:12px; }
-  .progress{ display:flex; gap:5px; flex-wrap:wrap; max-width:240px; justify-content:flex-end; }
-  .progress span{ width:12px; height:3px; background:var(--line); transition:background .3s ease; }
-  .dark .progress span{ background:var(--line-inv); }
-  .progress span.done{ background:var(--lime); }
-  .light .footbar{ color:rgba(10,14,26,.5); }
-  .dark .footbar{ color:rgba(245,245,243,.5); }
+.navbtns{
+  position:absolute; bottom:36px; right:6vw;
+  display:flex; gap:12px; pointer-events:auto;
+}
+.navbtn{
+  width:54px;height:54px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(6px);
+  color:#fff; font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer; transition:transform .2s, background .2s;
+  mix-blend-mode:difference;
+}
+.navbtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.14); }
+.navbtn:active{ transform:scale(.94); }
+.navbtn[disabled]{ opacity:.25; pointer-events:none; }
 
-  .eyebrow{ font-family:var(--mono); font-size:13px; color:var(--orange); margin-bottom:16px; }
+.progress-track{
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:rgba(255,255,255,.12); mix-blend-mode:difference;
+}
+.progress-fill{
+  height:100%; background:#fff; width:8.333%;
+  transition:width .85s cubic-bezier(.65,0,.24,1);
+}
 
-  h1.big{ font-family:var(--display); font-weight:400; line-height:.92; font-size:clamp(48px,6.6vw,120px); }
-  h2.title{ font-family:var(--display); font-weight:400; line-height:.94; font-size:clamp(36px,4.8vw,72px); margin-bottom:18px; }
-  p.lead{ font-family:var(--body); font-weight:400; font-size:clamp(15px,1.25vw,19px); line-height:1.55; max-width:620px; opacity:.86; }
+/* ---------- marquee ---------- */
+.marquee{
+  position:absolute; bottom:0; left:0; right:0;
+  background:var(--lime); color:var(--ink);
+  overflow:hidden; white-space:nowrap;
+  padding:11px 0; border-top:1px solid rgba(10,14,26,.15);
+}
+.marquee-track{
+  display:inline-block; padding-left:100%;
+  font-family:var(--disp); font-weight:800; font-size:15px; letter-spacing:.02em;
+  text-transform:uppercase;
+  animation:scroll 26s linear infinite;
+}
+.marquee-track span{ padding:0 22px; }
+@keyframes scroll{ from{ transform:translateX(0);} to{ transform:translateX(-100%);} }
 
-  /* ---------- entrance choreography ---------- */
+/* ---------- slide 1 : cover ---------- */
+#s1 .inner{ padding-bottom:13vh; }
+.cover-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+.cover-title{ font-size:clamp(44px,7.4vw,108px); font-weight:900; margin-top:3vh; max-width:15ch; }
+.cover-title em{ font-style:normal; color:var(--lime); }
+.cover-sub{ margin-top:22px; }
+.team{ margin-top:6vh; max-width:640px; }
 
-  @keyframes itemIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
-  @keyframes itemInLeft{ from{ opacity:0; transform:translateX(-18px); } to{ opacity:1; transform:translateX(0); } }
-  @keyframes growLine{ from{ width:0; } to{ width:100%; } }
-  @keyframes popDot{ from{ transform:scale(0); } to{ transform:scale(1); } }
+/* ---------- generic split layout ---------- */
+.split{ display:grid; grid-template-columns:1.35fr 1fr; gap:5vw; height:100%; align-items:center; }
+.split .col-right{ position:relative; height:100%; display:flex; align-items:center; justify-content:center; }
+@media (max-width:900px){ .split{ grid-template-columns:1fr; } .split .col-right{ display:none; } }
 
-  .slide.active .anim{ animation:itemIn .55s cubic-bezier(.22,.8,.32,1) both; }
-  .slide.active .anim-l{ animation:itemInLeft .55s cubic-bezier(.22,.8,.32,1) both; }
-  .slide.active .anim:nth-child(1){ animation-delay:.05s; } .slide.active .anim:nth-child(2){ animation-delay:.12s; }
-  .slide.active .anim:nth-child(3){ animation-delay:.19s; } .slide.active .anim:nth-child(4){ animation-delay:.26s; }
-  .slide.active .anim:nth-child(5){ animation-delay:.33s; } .slide.active .anim:nth-child(6){ animation-delay:.40s; }
-  .slide.active .anim:nth-child(7){ animation-delay:.47s; } .slide.active .anim:nth-child(8){ animation-delay:.54s; }
-  .slide.active .anim:nth-child(9){ animation-delay:.61s; } .slide.active .anim:nth-child(10){ animation-delay:.68s; }
-  .slide.active .anim:nth-child(11){ animation-delay:.75s; } .slide.active .anim:nth-child(12){ animation-delay:.82s; }
+.tag-strip{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+.tag{
+  font-family:var(--mono); font-size:11px; padding:6px 12px; border-radius:999px;
+  border:1px solid currentColor; opacity:.75;
+}
 
-  .slide.active .hero-num, .slide.active h1.big{ animation:itemIn .7s cubic-bezier(.22,.8,.32,1) both; }
-  .slide.active h1.big{ animation-delay:.08s; }
-  .slide.active .eyebrow{ animation:itemIn .5s ease both; }
-  .slide.active h2.title{ animation:itemIn .55s ease both .06s; }
-  .slide.active p.lead{ animation:itemIn .55s ease both .14s; }
+.big-stat{ font-family:var(--disp); font-weight:900; font-size:clamp(56px,8vw,120px); line-height:.9; }
+.stat-label{ font-family:var(--text); font-weight:400; font-size:14px; opacity:.65; max-width:26ch; margin-top:10px; }
 
-  /* ---------- title slide ---------- */
+pre.code{
+  font-family:var(--mono); font-size:12.5px; line-height:1.65;
+  background:rgba(255,255,255,.05); border:1px solid var(--line-dark);
+  border-radius:14px; padding:20px 22px; overflow:auto; max-width:560px;
+}
+.slide.light pre.code{ background:rgba(10,14,26,.04); border-color:var(--line-light); }
 
-  .hero-wrap{ display:grid; grid-template-columns:1.55fr 1fr; gap:40px; align-items:center; height:100%; }
-  .hero-num{ font-family:var(--mono); font-size:15px; color:rgba(245,245,243,.55); margin-bottom:18px; }
-  .hero-names{ display:flex; flex-direction:column; gap:9px; margin-top:22px; max-width:520px; font-family:var(--mono); font-size:12.5px; color:rgba(245,245,243,.65); }
-  .hn-row{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding-left:14px; position:relative; }
-  .hn-row::before{ content:''; position:absolute; left:0; top:6px; width:6px; height:6px; border-radius:50%; background:var(--lime); }
-  .hn-row span:last-child{ color:rgba(245,245,243,.45); flex:none; }
+/* ---------- table ---------- */
+.cmp-table{ width:100%; border-collapse:collapse; margin-top:8px; }
+.cmp-table th,.cmp-table td{ text-align:left; padding:16px 14px; border-bottom:1px solid var(--line-dark); }
+.slide.light .cmp-table th, .slide.light .cmp-table td{ border-bottom:1px solid var(--line-light); }
+.cmp-table th{ font-family:var(--mono); font-size:11px; font-weight:500; opacity:.55; text-transform:uppercase; letter-spacing:.04em; }
+.cmp-table td{ font-family:var(--disp); font-weight:700; font-size:clamp(16px,1.8vw,24px); }
+.cmp-table td.algo{ display:flex; align-items:center; gap:10px; }
+.swatch{ width:10px;height:10px;border-radius:50%; flex:none; }
 
-  .hero-right{ justify-self:end; text-align:right; border-left:1px solid var(--line-inv); padding-left:32px; height:70%; display:flex; flex-direction:column; justify-content:center; gap:20px; }
-  .hero-right .stat{ font-family:var(--mono); font-size:13px; color:rgba(245,245,243,.6); }
-  .hero-right .stat b{ display:block; font-family:var(--display); font-size:34px; color:var(--lime); font-weight:400; }
+/* ---------- diagram helpers ---------- */
+.mini-note{ font-family:var(--mono); font-size:11px; opacity:.55; margin-top:14px; max-width:36ch; }
 
-  .marquee{ overflow:hidden; white-space:nowrap; border-top:1px solid var(--line-inv); border-bottom:1px solid var(--line-inv); padding:14px 0; }
-  .marquee .track{ display:inline-block; padding-left:100%; animation:scroll 26s linear infinite; font-family:var(--display); font-size:22px; color:var(--lime); }
-  .marquee .track span{ margin:0 28px; color:var(--paper); }
-  .marquee .track span.hi{ color:var(--lime); }
-  @keyframes scroll{ 0%{ transform:translateX(0); } 100%{ transform:translateX(-100%); } }
+/* ---------- chart container ---------- */
+.chart-wrap{ background:rgba(255,255,255,.04); border:1px solid var(--line-dark); border-radius:18px; padding:26px 28px 14px; }
+.slide.light .chart-wrap{ background:#fff; border-color:var(--line-light); }
+.legend-row{ display:flex; gap:22px; flex-wrap:wrap; margin-top:16px; }
+.legend-item{ display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; opacity:.75; }
+.legend-item .sw{ width:12px;height:12px;border-radius:3px; }
 
-  /* ---------- row list ---------- */
+/* winner badge */
+.winner-badge{
+  display:inline-flex; align-items:center; gap:12px;
+  background:var(--lime); color:var(--ink);
+  padding:14px 22px; border-radius:16px;
+  font-family:var(--disp); font-weight:900; font-size:20px; text-transform:uppercase;
+  margin-top:18px;
+}
 
-  .rowlist{ border-top:1px solid var(--line); }
-  .dark .rowlist{ border-color:var(--line-inv); }
-  .rowlist .row{ display:grid; grid-template-columns:28px 1fr auto; align-items:baseline; gap:20px; padding:16px 2px; border-bottom:1px solid var(--line); }
-  .dark .rowlist .row{ border-color:var(--line-inv); }
-  .rowlist .row .lbl{ font-family:var(--display); font-size:clamp(18px,1.8vw,25px); }
-  .rowlist .row .desc{ font-size:14px; opacity:.78; max-width:560px; }
-  .rowlist .row .arrow{ font-family:var(--mono); font-size:13px; opacity:.55; }
+footer.credits{ font-family:var(--mono); font-size:11px; opacity:.5; margin-top:auto; }
 
-  /* ---------- columns ---------- */
-
-  .cols{ display:grid; grid-template-columns:1fr 1fr; gap:52px; height:100%; align-items:start; }
-  .cols.asym{ grid-template-columns:1.15fr .85fr; }
-
-  /* ---------- table ---------- */
-
-  table.complex{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:13.5px; margin-top:16px; }
-  table.complex th, table.complex td{ text-align:left; padding:11px 10px; border-bottom:1px solid var(--line); }
-  table.complex th{ font-weight:600; color:var(--orange); }
-  .dark table.complex td, .dark table.complex th{ border-color:var(--line-inv); }
-  table.complex tr{ animation:itemIn .5s ease both; }
-  table.complex tr:nth-child(1){ animation-delay:.05s; } table.complex tr:nth-child(2){ animation-delay:.12s; }
-  table.complex tr:nth-child(3){ animation-delay:.19s; } table.complex tr:nth-child(4){ animation-delay:.26s; }
-  table.complex tr:nth-child(5){ animation-delay:.33s; } table.complex tr:nth-child(6){ animation-delay:.40s; }
-  table.complex tr:nth-child(7){ animation-delay:.47s; }
-
-  .formula{ font-family:var(--mono); font-size:14.5px; background:rgba(10,14,26,0.04); border:1px solid var(--line); padding:16px 18px; line-height:1.7; margin-top:14px; }
-  .dark .formula{ background:rgba(245,245,243,0.05); border-color:var(--line-inv); }
-  .formula .k{ color:var(--orange); }
-
-  .pill{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; padding:7px 14px; border-radius:999px; border:1px solid var(--line); }
-  .dark .pill{ border-color:var(--line-inv); }
-  .pill .dot{ width:6px; height:6px; }
-
-  /* ---------- code ---------- */
-
-  .codebox{ background:#0A0E1A; color:#EDEDE9; border:1px solid var(--line-inv); font-family:var(--mono); font-size:12px; line-height:1.6; padding:20px 22px; overflow:auto; height:100%; max-height:100%; }
-  .light .codebox{ box-shadow:0 0 0 1px var(--line); }
-  .codebox .c1{ color:#7C8A9E; } .codebox .c2{ color:var(--lime); } .codebox .c3{ color:#FF9166; } .codebox .c4{ color:#EDEDE9; }
-  .codebox pre{ white-space:pre-wrap; }
-  .codeline{ opacity:0; animation:itemInLeft .4s ease both; }
-
-  /* ---------- circular cta ---------- */
-
-  .circle-cta{ width:126px;height:126px; border-radius:50%; background:var(--lime); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-family:var(--body); font-weight:700; font-size:12.5px; line-height:1.25; flex:none; animation:popDot .5s cubic-bezier(.34,1.56,.64,1) both .3s; }
-  .circle-cta .ar{ margin-top:6px; font-size:16px; }
-
-  /* ---------- sliding-window diagram ---------- */
-
-  .swrap{ margin-top:26px; }
-  .stripe{ display:flex; gap:6px; position:relative; justify-content:center; overflow-x:auto; max-width:100%; padding-bottom:4px; }
-  .tile{ width:40px; height:44px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:16px; border:1px solid var(--line-inv); color:var(--paper); background:rgba(245,245,243,.03); flex:none; }
-  .light .tile{ border-color:var(--line); color:var(--ink); background:rgba(10,14,26,.03); }
-  .light .window{ border-color:var(--orange); }
-  .light .swrap .caption{ color:rgba(10,14,26,.55); }
-  .window{ position:absolute; top:-6px; left:0; height:56px; width:130px; border:2px solid var(--lime); border-radius:4px; animation:slide 6s ease-in-out infinite; }
-  @keyframes slide{
-    0%{ transform:translateX(0); }
-    20%{ transform:translateX(0); }
-    35%{ transform:translateX(138px); }
-    50%{ transform:translateX(138px); }
-    65%{ transform:translateX(276px); }
-    80%{ transform:translateX(276px); }
-    100%{ transform:translateX(0); }
-  }
-  .swrap .caption{ font-family:var(--mono); font-size:12px; color:rgba(245,245,243,.55); margin-top:16px; }
-
-  /* ---------- timing bars (agenda) ---------- */
-
-  .timerow{ display:grid; grid-template-columns:170px 1fr 60px; align-items:center; gap:18px; padding:13px 0; border-bottom:1px solid var(--line); }
-  .dark .timerow{ border-color:var(--line-inv); }
-  .timerow .lbl{ font-family:var(--display); font-size:19px; }
-  .timerow .bar{ height:8px; background:var(--line); position:relative; overflow:hidden; }
-  .dark .timerow .bar{ background:var(--line-inv); }
-  .timerow .bar i{ position:absolute; left:0; top:0; height:100%; background:var(--lime); display:block; animation:growLine 1s cubic-bezier(.22,.8,.32,1) both; }
-  .timerow .min{ font-family:var(--mono); font-size:12px; text-align:right; opacity:.7; }
-
-  /* ---------- roster ---------- */
-
-  .roster{ display:grid; grid-template-columns:1fr 1fr; gap:10px 28px; }
-  .roster .r{ display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:13px; }
-  .dark .roster .r{ border-color:var(--line-inv); }
-  .roster .r b{ font-family:var(--body); font-weight:600; }
-
-  /* ---------- test terminal ---------- */
-
-  .term{ background:#0A0E1A; border:1px solid var(--line-inv); font-family:var(--mono); font-size:12.5px; padding:20px 22px; color:#EDEDE9; }
-  .term .ln{ opacity:0; animation:itemInLeft .4s ease both; margin-bottom:6px; }
-  .term .ok{ color:var(--lime); }
-  .term .tag{ color:#7C8A9E; }
-
-  /* ---------- nav ---------- */
-
-  #nav{ position:fixed; bottom:26px; right:64px; display:flex; gap:10px; z-index:50; font-family:var(--mono); }
-  .navbtn{ width:42px;height:42px; border-radius:999px; border:1px solid rgba(255,255,255,.3); background:rgba(10,14,26,.55); color:#F5F5F3; display:flex;align-items:center;justify-content:center; cursor:pointer; font-size:16px; backdrop-filter:blur(4px); transition:background .2s ease, transform .15s ease; }
-  .navbtn:hover{ background:var(--lime); color:var(--ink); transform:translateY(-2px); }
-  #hint{ position:fixed; bottom:30px; left:64px; font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.45); letter-spacing:.03em; z-index:50; }
-  #timer{ position:fixed; top:26px; right:64px; font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.55); z-index:50; background:rgba(10,14,26,.55); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 14px; backdrop-filter:blur(4px); }
-  #timer.warn{ color:var(--orange); border-color:var(--orange); }
-  #timer.over{ color:#fff; background:var(--orange); border-color:var(--orange); }
-
-  /* ---------- Rabin–Karp demo diagram ---------- */
-
-  .rk-wrap{ margin-top:28px; }
-  .rk-track{ position:relative; display:flex; gap:6px; justify-content:center; overflow-x:auto; max-width:100%; padding-bottom:4px; }
-  .rk-tile{ width:38px;height:42px; display:flex;align-items:center;justify-content:center; font-family:var(--mono); font-size:15px; border:1px solid var(--line-inv); color:var(--paper); background:rgba(245,245,243,.03); flex:none; }
-  .rk-window{ position:absolute; top:-6px; left:0; width:172px; height:54px; border:2px solid var(--lime); border-radius:4px; animation:rkslide 8s cubic-bezier(.65,0,.35,1) infinite; }
-  @keyframes rkslide{
-    0%{ transform:translateX(0); border-color:var(--lime); }
-    15%{ transform:translateX(0); border-color:var(--lime); }
-    26%{ transform:translateX(132px); border-color:var(--orange); }
-    40%{ transform:translateX(132px); border-color:var(--orange); }
-    52%{ transform:translateX(308px); border-color:var(--lime); }
-    92%{ transform:translateX(308px); border-color:var(--lime); }
-    100%{ transform:translateX(0); border-color:var(--lime); }
-  }
-  .rk-status{ position:relative; height:22px; margin-top:66px; font-family:var(--mono); font-size:13.5px; }
-  .rk-status span{ position:absolute; left:0; top:0; opacity:0; }
-  .rk-status .s1{ color:var(--lime); animation:rkstat1 8s ease infinite; }
-  .rk-status .s2{ color:var(--orange); animation:rkstat2 8s ease infinite; }
-  .rk-status .s3{ color:var(--lime); animation:rkstat3 8s ease infinite; }
-  @keyframes rkstat1{ 0%,14%{opacity:1;} 20%,100%{opacity:0;} }
-  @keyframes rkstat2{ 0%,25%{opacity:0;} 27%,39%{opacity:1;} 46%,100%{opacity:0;} }
-  @keyframes rkstat3{ 0%,51%{opacity:0;} 53%,91%{opacity:1;} 97%,100%{opacity:0;} }
-
-  /* ---------- binary-search-on-length demo diagram ---------- */
-
-  .bs-wrap{ margin-top:44px; }
-  .bs-track{ position:relative; height:8px; background:var(--line-inv); border-radius:4px; margin-top:34px; }
-  .bs-range{ position:absolute; top:0; height:100%; background:var(--lime); border-radius:4px; animation:bsrange 7s ease infinite; }
-  .bs-mid{ position:absolute; top:-24px; width:2px; height:22px; background:var(--paper); animation:bsmid 7s ease infinite; }
-  @keyframes bsrange{
-    0%{ left:0%; width:100%; } 18%{ left:0%; width:100%; }
-    28%{ left:0%; width:50%; } 42%{ left:0%; width:50%; }
-    52%{ left:25%; width:25%; } 66%{ left:25%; width:25%; }
-    76%{ left:37%; width:13%; } 94%{ left:37%; width:13%; }
-    100%{ left:0%; width:100%; }
-  }
-  @keyframes bsmid{
-    0%{ left:calc(50% - 1px);} 18%{ left:calc(50% - 1px);}
-    28%{ left:calc(25% - 1px);} 42%{ left:calc(25% - 1px);}
-    52%{ left:calc(37% - 1px);} 66%{ left:calc(37% - 1px);}
-    76%{ left:calc(43% - 1px);} 94%{ left:calc(43% - 1px);}
-    100%{ left:calc(50% - 1px);}
-  }
-  .bs-status{ position:relative; height:22px; margin-top:20px; font-family:var(--mono); font-size:13.5px; }
-  .bs-status span{ position:absolute; left:0; top:0; opacity:0; }
-  .bs-status .b1{ color:var(--paper); animation:bsstat1 7s ease infinite; }
-  .bs-status .b2{ color:var(--lime); animation:bsstat2 7s ease infinite; }
-  .bs-status .b3{ color:var(--orange); animation:bsstat3 7s ease infinite; }
-  .bs-status .b4{ color:var(--lime); animation:bsstat4 7s ease infinite; }
-  @keyframes bsstat1{ 0%,17%{opacity:1;} 22%,100%{opacity:0;} }
-  @keyframes bsstat2{ 0%,27%{opacity:0;} 29%,41%{opacity:1;} 46%,100%{opacity:0;} }
-  @keyframes bsstat3{ 0%,51%{opacity:0;} 53%,65%{opacity:1;} 70%,100%{opacity:0;} }
-  @keyframes bsstat4{ 0%,75%{opacity:0;} 77%,93%{opacity:1;} 98%,100%{opacity:0;} }
-
-  /* ---------- debug / array step-through ---------- */
-
-  .dbg-chars{ display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap; justify-content:center; }
-  .dbg-chars .ct{ width:46px;height:46px; display:flex;align-items:center;justify-content:center; font-family:var(--display); font-size:22px; border:1px solid var(--line-inv); color:var(--paper); flex:none; }
-  .dbg-chars .ct.hi{ border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset; }
-  .dbg-arr{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  .dbg-arr .cell{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-  .dbg-arr .cell .idx{ font-family:var(--mono); font-size:11px; opacity:.55; }
-  .dbg-arr .cell .val{ width:56px;height:44px; display:flex;align-items:center;justify-content:center; font-family:var(--mono); font-size:16px; border:1px solid var(--line-inv); background:rgba(245,245,243,.04); color:var(--paper); }
-  .dbg-arr .cell.hi .val{ border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset; }
-  .dbg-arr .cell.op .val{ border:none; background:none; font-family:var(--display); font-size:20px; color:rgba(245,245,243,.5); }
-  .dbg-eq{ margin-top:30px; font-family:var(--mono); font-size:15px; color:rgba(245,245,243,.75); }
-  .dbg-eq b{ color:var(--lime); }
-  .light .dbg-chars .ct{ border-color:var(--line); color:var(--ink); }
-  .light .dbg-arr .cell .val{ border-color:var(--line); color:var(--ink); background:rgba(10,14,26,.04); }
-  .light .dbg-arr .cell.op .val{ color:rgba(10,14,26,.4); }
-
-  /* ---------- suffix list diagram ---------- */
-
-  .suflist{ margin-top:22px; border-top:1px solid var(--line-inv); }
-  .light .suflist{ border-color:var(--line); }
-  .sufrow{ display:grid; grid-template-columns:34px 1fr 70px; align-items:center; gap:16px; padding:10px 2px; border-bottom:1px solid var(--line-inv); font-family:var(--mono); font-size:14px; }
-  .light .sufrow{ border-color:var(--line); }
-  .sufrow .si{ opacity:.5; }
-  .sufrow .sv{ letter-spacing:.02em; }
-  .sufrow .sv b{ color:var(--lime); font-weight:600; }
-  .light .sufrow .sv b{ color:var(--orange); }
-  .sufrow .sr{ text-align:right; opacity:.6; }
-
-  /* ---------- thanks / keycap animation ---------- */
-
-  .thanks-wrap{ position:relative; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-  .thanks-title{ font-family:var(--display); font-weight:400; font-size:clamp(90px,15vw,230px); color:var(--paper); letter-spacing:.01em; z-index:3; position:relative; }
-  .thanks-title .dot-lime{ color:var(--lime); }
-
-  .keycap{
-    position:absolute; display:flex; align-items:center; justify-content:center;
-    font-family:var(--mono); font-weight:600; color:var(--paper);
-    background:rgba(245,245,243,.04); border:2px solid var(--line-inv);
-    border-radius:10px; box-shadow:0 7px 0 rgba(245,245,243,.08);
-    animation: keyjump 2.6s cubic-bezier(.34,1.56,.64,1) infinite;
-    z-index:1;
-  }
-  .keycap.lime{ border-color:var(--lime); color:var(--lime); box-shadow:0 7px 0 rgba(198,255,0,.22); }
-  .keycap.orange{ border-color:var(--orange); color:var(--orange); box-shadow:0 7px 0 rgba(255,92,26,.22); }
-
-  @keyframes keyjump{
-    0%,100%{ transform:translateY(0) rotate(var(--rot,0deg)); }
-    35%{ transform:translateY(-30px) rotate(var(--rot,0deg)); }
-    50%{ transform:translateY(-38px) rotate(var(--rot,0deg)); }
-    65%{ transform:translateY(-30px) rotate(var(--rot,0deg)); }
-  }
-
-  @media print{
-    .keycap{ animation:none !important; }
-    html,body{ height:auto; } -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    #nav,#hint,#timer{ display:none !important; }
-    #deck{ height:auto; }
-    .slide{ position:relative; display:block !important; opacity:1 !important; animation:none !important; page-break-after:always; break-after:page; height:100vh; }
-    .marquee .track, .window, .rk-window, .bs-range, .bs-mid{ animation:none; }
-    .rk-status span, .bs-status span{ animation:none !important; opacity:1 !important; position:relative; display:block; margin-bottom:4px; }
-    .anim,.anim-l,h1.big,.eyebrow,h2.title,p.lead,.term .ln,.timerow .bar i,table.complex tr,.circle-cta{ animation:none !important; opacity:1 !important; transform:none !important; width:100% !important; }
-    .dbg-chars .ct,.dbg-arr .cell{ animation:none !important; opacity:1 !important; transform:none !important; }
-  }
-
-  @media (max-width:900px){
-    html,body{ overflow-y:auto; }
-    #deck{ height:auto; min-height:100vh; }
-    .slide{ position:relative; height:auto; min-height:100vh; }
-    .slide:not(.active){ display:none; }
-    .frame{ height:auto; min-height:100vh; padding:26px 20px; grid-template-rows:auto auto auto; row-gap:18px; }
-    .frame > *:not(.topbar):not(.footbar){ align-self:auto; }
-    .cols, .cols.asym, .hero-wrap{ grid-template-columns:1fr; gap:26px; }
-    .hero-right{ border-left:none; border-top:1px solid var(--line-inv); padding-left:0; padding-top:20px; align-items:flex-start; text-align:left; }
-    .roster{ grid-template-columns:1fr; }
-    h1.big{ font-size:clamp(38px,11vw,64px); }
-    h2.title{ font-size:clamp(26px,7vw,40px) !important; }
-    p.lead{ font-size:14px !important; max-width:100%; }
-    .codebox{ max-height:46vh; }
-    #hint{ display:none; }
-    #timer{ top:auto; bottom:26px; right:20px; font-size:11px; }
-    #nav{ right:20px; bottom:78px; }
-  }
-
-  @media (max-width:520px){
-    .frame{ padding:20px 16px; }
-    .rowlist .row{ grid-template-columns:20px 1fr auto; gap:12px; }
-    table.complex{ font-size:11.5px; }
-    .dbg-arr .cell .val, .dbg-chars .ct{ width:40px; height:40px; font-size:14px; }
-    .tile, .rk-tile{ width:32px; height:38px; font-size:13px; }
-  }
-
+@media (max-width:640px){
+  .inner{ padding:9vh 6vw 12vh; }
+  .navbtns{ right:5vw; bottom:20vh; flex-direction:column; }
+}
 </style>
 </head>
 <body>
 
 <div id="deck">
+  <div class="track" id="track">
 
-  <!-- 01 — PORTADA -->
-  <section class="slide dark active" id="s0">
-    <div class="frame">
-      <div class="topbar">
-        <div class="mark"><span class="dot"></span> ANÁLISIS DE ALGORITMOS AVANZADOS</div>
-        <div class="side"><span>EQUIPO 5-8</span><span></span></div>
-      </div>
-      <div class="hero-wrap">
-        <div>
-          <h1 class="big">HASH STRING<br>—<br>SUFFIX ARRAY</h1>
-          <div class="hero-names anim">
-            <div class="hn-row"><span>Alexandra Melgar Loza</span><span>A01770569</span></div>
-            <div class="hn-row"><span>Ileana Tapia Castillo</span><span>A01773374</span></div>
-            <div class="hn-row"><span>María Fernanda Valdovinos Mañón</span><span>A01773977</span></div>
-            <div class="hn-row"><span>Natalia Sosa Torres</span><span>A01770703</span></div>
-            <div class="hn-row"><span>Tabata Carolina Salinas Valdez</span><span>A01770901</span></div>
-            <div class="hn-row"><span>Yael Sebastián González Hernández</span><span>A01770992</span></div>
-            <div class="hn-row"><span>Alessandro Daturi Miranda</span><span>A01773901</span></div>
-            <div class="hn-row"><span>Alan Joseph Salazar Segura</span><span>A01773491</span></div>            
-          </div>
+    <!-- SLIDE 1 — PORTADA -->
+    <section class="slide dark" id="s1">
+      <div class="inner">
+        <div class="cover-top reveal r1">
+          <span class="eyebrow">Análisis de Algoritmos Avanzados</span>
+          <span class="pill" style="font-family:var(--mono)">SARS&#8209;CoV&#8209;2 · 29,903 nt</span>
         </div>
-        <div class="hero-right">
-          <div class="stat anim">PRECÓMPUTO HASH<b>O(n)</b></div>
-          <div class="stat anim">CONSTRUCCIÓN SUFFIX ARRAY<b>O(n log n)</b></div>
+        <h1 class="cover-title reveal r2">Buscando el <em>palíndromo</em> más largo del genoma</h1>
+        <p class="lead cover-sub reveal r3">Tres implementaciones, un mismo objetivo: encontrar la subsecuencia que se lee igual al derecho y al revés dentro del genoma completo del SARS&#8209;CoV&#8209;2. Comparamos su lógica, su complejidad y su desempeño real.</p>
+
+        <div class="team reveal r4">
+          <div class="rows">
+            <div class="row">
+              <span class="row-name">José Pedro Rodríguez Munguía</span>
+              <span class="row-meta">A01769631 — Manacher</span>
+            </div>
+            <div class="row">
+              <span class="row-name">Marco Aurelio Tamez Robles</span>
+              <span class="row-meta">A01770750 — Palindrome SA</span>
+            </div>
+            <div class="row">
+              <span class="row-name">Ileana Tapia Castillo</span>
+              <span class="row-meta">A01771374 — Suffix Array</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="marquee">
-        <div class="track">
-          <span class="hi">ROLLING HASH</span><span>—</span><span class="hi">RABIN–KARP</span><span>—</span>
-          <span class="hi">SUFFIX ARRAY</span><span>—</span><span class="hi">LCP ARRAY</span><span>—</span>
-          <span class="hi">DOBLE MÓDULO</span><span>—</span><span class="hi">O(1) POR CONSULTA</span><span>—</span>
-          <span class="hi">ROLLING HASH</span><span>—</span><span class="hi">RABIN–KARP</span><span>—</span>
-          <span class="hi">SUFFIX ARRAY</span><span>—</span><span class="hi">LCP ARRAY</span><span>—</span>
-
+        <div class="marquee-track">
+          <span>MANACHER · O(N)</span><span>SUFFIX ARRAY · O(N LOG&sup2; N)</span><span>PALINDROME SA · O(N LOG&sup2; N)</span><span>29,903 NUCLEÓTIDOS</span><span>1 GENOMA</span><span>3 ALGORITMOS</span>
+          <span>MANACHER · O(N)</span><span>SUFFIX ARRAY · O(N LOG&sup2; N)</span><span>PALINDROME SA · O(N LOG&sup2; N)</span><span>29,903 NUCLEÓTIDOS</span><span>1 GENOMA</span><span>3 ALGORITMOS</span>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 02 — DEFINICIÓN + RELEVANCIA (fusión) -->
-  <section class="slide dark" id="s2">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>00 / EL PROBLEMA</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">EL PROBLEMA ABSTRACTO</div>
-          <h2 class="title anim">Comparar y ordenar<br>subcadenas sin<br>leerlas letra por letra.</h2>
-          <p class="lead anim">Comparar dos subcadenas de longitud L, carácter por carácter, cuesta O(L). Repetido miles de veces —búsqueda de patrones, deduplicación, ordenar sufijos, contar subcadenas distintas— ese costo se arrastra en cada paso. Dos técnicas lo resuelven desde ángulos distintos: el <b>hashing</b> mapea cada subcadena a un entero y compara por igualdad; el <b>suffix array</b> ordena todos los sufijos y compara por orden lexicográfico real.</p>
-        </div>
-        <div>
-          <div class="eyebrow anim">ANTES / DESPUÉS</div>
-          <div class="rowlist">
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Fuerza bruta</div><div class="arrow">O(n²·L)</div></div>
-            <div class="row anim"><div></div><div class="desc">Comparar todos los pares de subcadenas o sufijos exige recorrerlos cada vez.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Con hashing</div><div class="arrow">O(1)</div></div>
-            <div class="row anim"><div></div><div class="desc">Un precómputo O(n) permite comparar cualquier par de subcadenas en tiempo constante.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Con suffix array</div><div class="arrow">O(log n)</div></div>
-            <div class="row anim"><div></div><div class="desc">Una construcción O(n log n) permite ordenar, buscar patrones y calcular LCP eficientemente.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p2"></div><span>02 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 03 — FUNDAMENTOS HASHING -->
-  <section class="slide dark" id="s4">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>01 / FUNDAMENTOS</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">FUNCIÓN HASH POLINOMIAL</div>
-          <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Rolling hash.</h2>
-          <div class="formula anim">H(s) = (s<span class="k">₀</span>·p<span class="k">⁰</span> + s<span class="k">₁</span>·p<span class="k">¹</span> + … + s<span class="k">ₙ₋₁</span>·p<span class="k">ⁿ⁻¹</span>) mod m</div>
-          <p class="lead anim" style="margin-top:16px;">p es un primo cercano al alfabeto (31, 53); m un módulo grande (1e9+7). El hash de s[l..r] sale por resta de prefijos en O(1):</p>
-          <div class="formula anim">hash(l, r) = (H[r] − H[l−1] · p<span class="k">ʳ⁻ˡ</span>) mod m</div>
-        </div>
-        <div>
-          <div class="eyebrow anim">VENTANA DESLIZANTE SOBRE EL TEXTO</div>
-          <p class="lead anim" style="font-size:14px;">El hash de cada ventana de longitud fija se deriva del anterior sin recalcular desde cero — de ahí "rolling".</p>
-          <div class="swrap">
-            <div class="stripe">
-              <div class="window"></div>
-              <div class="tile">A</div><div class="tile">B</div><div class="tile">R</div><div class="tile">A</div>
-              <div class="tile">C</div><div class="tile">A</div><div class="tile">D</div><div class="tile">A</div>
-              <div class="tile">B</div><div class="tile">R</div><div class="tile">A</div>
-            </div>
-            <div class="caption">la ventana verde recorre "ABRACADABRA" comparando cada hash contra el patrón</div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p3"></div><span>03 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 04 — COMPLEJIDAD FORMAL HASHING (corregida) -->
-  <section class="slide dark" id="s5">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>01 / COMPLEJIDAD</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">ANÁLISIS FORMAL</div>
-          <h2 class="title anim" style="font-size:clamp(32px,3.8vw,56px);">Tiempo, espacio y riesgo de error.</h2>
-          <table class="complex">
-            <tr><th>Operación</th><th>Tiempo</th><th>Espacio</th></tr>
-            <tr><td>Precómputo de prefijos</td><td>O(n)</td><td>O(n)</td></tr>
-            <tr><td>Hash de una subcadena</td><td>O(1)</td><td>O(1)</td></tr>
-            <tr><td>Comparación de dos subcadenas</td><td>O(1)</td><td>O(1)</td></tr>
-            <tr><td>Colisión falsa (un módulo)</td><td>P ≈ 1/m</td><td>—</td></tr>
-            <tr><td>Colisión falsa (doble módulo)</td><td>P ≈ 1/m²</td><td>—</td></tr>
-          </table>
-        </div>
-        <div>
-          <div class="eyebrow anim">POR QUÉ DOBLE MÓDULO</div>
-          <p class="lead anim">El hashing es O(1) en tiempo siempre — lo que cambia con la técnica no es la velocidad, sino la probabilidad de que dos subcadenas distintas produzcan el mismo hash. Con un solo (p, m) esa probabilidad es ~1/m; con dos pares independientes cae a ~1/m² — la diferencia entre una implementación de examen y una robusta frente a un juez adversarial.</p>
-          <div class="rowlist" style="margin-top:20px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl" style="font-size:17px;">Rigor formal</div><div class="arrow">→</div></div>
-            <div class="row anim"><div></div><div class="desc">Una colisión no cuesta tiempo extra, cuesta corrección: el algoritmo sigue siendo O(1), pero puede dar un falso positivo si el módulo es fijo y conocido por un adversario.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p4"></div><span>04 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 05 — FORTALEZAS + LIMITACIONES HASHING (fusión) -->
-  <section class="slide light" id="s6">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>02 / BALANCE</span></div></div>
-      <div>
-      <h2 class="title anim">Fortalezas y limitaciones.</h2>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl">Velocidad</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Comparación de subcadenas en O(1) tras un único precómputo O(n).</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Simplicidad</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Mucho más simple de implementar y depurar que Suffix Array o Suffix Automaton.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Memoria</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Solo dos arreglos de tamaño n — bajo overhead frente a estructuras de sufijos.</div><div></div></div>
-          </div>
-        </div>
-        <div>
-          <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Probabilístico</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Existe riesgo, aunque pequeño, de colisión falsa; nunca es 100% determinístico.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Sin orden</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">No ordena subcadenas lexicográficamente — ahí Suffix Array es la alternativa correcta.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Hackeable</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Con módulo fijo y conocido, un adversario puede construir colisiones deliberadas.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p5"></div><span>05 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 06 — APLICACIONES HASHING (fusión de 2 casos) -->
-  <section class="slide dark" id="s8">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>02 / APLICACIONES</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot"></span>CASO 01</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Búsqueda de patrones<br>— Rabin–Karp</h2>
-          <p class="lead anim" style="font-size:13.5px;">Se hashea el patrón "ABRA" y cada ventana de "ABRACADABRA"; comparar dos hashes es O(1), así que recorrer todo el texto cuesta O(n).</p>
-          <div class="rk-wrap" style="transform:scale(.78); transform-origin:left top;">
-            <div class="rk-track">
-              <div class="rk-window"></div>
-              <div class="rk-tile">A</div><div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
-              <div class="rk-tile">C</div><div class="rk-tile">A</div><div class="rk-tile">D</div><div class="rk-tile">A</div>
-              <div class="rk-tile">B</div><div class="rk-tile">R</div><div class="rk-tile">A</div>
-            </div>
-            <div class="rk-status">
-              <span class="s1">posición 0 → hash coincide ✓</span>
-              <span class="s2">posición 3 → hash distinto</span>
-              <span class="s3">posición 7 → hash coincide ✓</span>
+    <!-- SLIDE 2 — EL PROBLEMA -->
+    <section class="slide light" id="s2">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">El problema</span>
+            <h2 class="reveal r2" style="font-size:clamp(34px,5vw,64px);margin-top:18px;">¿Qué es un palíndromo genético?</h2>
+            <p class="lead reveal r3" style="margin-top:20px;">Una subcadena del genoma que se lee igual de izquierda a derecha que de derecha a izquierda. Por ejemplo <span style="font-family:var(--mono)">ACGGCA</span> no lo es, pero <span style="font-family:var(--mono)">ACGCA</span> sí.</p>
+            <p class="lead reveal r4" style="margin-top:16px;">Encontrar el más largo no es trivial: revisar cada centro posible y expandir a mano toma O(n²). Los tres algoritmos de esta presentación resuelven ese mismo reto con estrategias distintas.</p>
+            <div class="tag-strip reveal r5">
+              <span class="tag">4 símbolos: A · C · G · T</span>
+              <span class="tag">29,903 posiciones</span>
+              <span class="tag">búsqueda por centro</span>
             </div>
           </div>
+          <div class="col-right reveal r3">
+            <svg width="100%" height="340" viewBox="0 0 360 340" style="max-width:380px;">
+              <g font-family="JetBrains Mono" font-size="20" font-weight="500">
+                <text x="10" y="60" fill="#0A0E1A" opacity="0.85">A T T A A A G G T T</text>
+                <text x="10" y="100" fill="#0A0E1A" opacity="0.85">T A T A C C T T C C</text>
+                <text x="10" y="140" fill="#0A0E1A" opacity="0.35">C A G G T A A C A A</text>
+                <rect x="52" y="172" width="210" height="34" rx="17" fill="#C6FF00" opacity="0.9"/>
+                <text x="70" y="196" fill="#0A0E1A" font-weight="700">A C C T T C C A</text>
+                <text x="10" y="250" fill="#0A0E1A" opacity="0.35">A C C A A C C A A C</text>
+                <text x="10" y="290" fill="#0A0E1A" opacity="0.85">T T T C G A T C T C</text>
+              </g>
+            </svg>
+          </div>
         </div>
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--orange)"></span>CASO 02</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Longest Common /<br>Palindromic Substring</h2>
-          <p class="lead anim" style="font-size:13.5px;">Se busca la longitud L más grande que cumple la propiedad, probando valores de L por búsqueda binaria; cada prueba compara hashes en O(n), total O(n log n).</p>
-          <div class="bs-wrap" style="margin-top:22px;">
-            <div class="bs-track">
-              <div class="bs-range"></div>
-              <div class="bs-mid"></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 — ROADMAP -->
+    <section class="slide dark" id="s3">
+      <div class="inner" style="justify-content:center;">
+        <span class="eyebrow reveal r1">Ruta de la presentación</span>
+        <h2 class="reveal r2" style="font-size:clamp(32px,5vw,60px);margin-top:16px;max-width:16ch;">Tres caminos, mismo destino</h2>
+        <div class="rows reveal r3" style="margin-top:5vh;max-width:920px;">
+          <div class="row">
+            <span class="row-name">Manacher</span>
+            <span class="row-meta">expansión desde el centro · O(n) · Pedro</span>
+            <span class="row-arrow">→</span>
+          </div>
+          <div class="row">
+            <span class="row-name">Suffix Array</span>
+            <span class="row-meta">suffix array + LCP + RMQ · O(n log&sup2; n) · Ileana</span>
+            <span class="row-arrow">→</span>
+          </div>
+          <div class="row">
+            <span class="row-name">Palindrome SA</span>
+            <span class="row-meta">variante de suffix array · O(n log&sup2; n) · Marco</span>
+            <span class="row-arrow">→</span>
+          </div>
+        </div>
+        <p class="lead reveal r4" style="margin-top:5vh;">Cada quien explica su implementación y al final comparamos teoría contra el tiempo real que tardaron sobre el genoma completo.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 — MANACHER CONCEPTO -->
+    <section class="slide light" id="s4">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Pedro — Manacher</span>
+            <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,58px);margin-top:16px;">Expandir sin volver a comparar</h2>
+            <p class="lead reveal r3" style="margin-top:18px;">Primero se inserta un separador <span style="font-family:var(--mono)">#</span> entre cada carácter (y en los extremos), para tratar palíndromos de longitud par e impar exactamente igual.</p>
+            <p class="lead reveal r4" style="margin-top:14px;">Luego se recorre la cadena una sola vez manteniendo el centro <span style="font-family:var(--mono)">C</span> y el borde derecho <span style="font-family:var(--mono)">R</span> del palíndromo más lejano encontrado hasta ese punto.</p>
+            <p class="lead reveal r5" style="margin-top:14px;">Si la posición actual cae dentro de ese borde, su radio mínimo se copia por simetría del espejo — sin comparar carácter por carácter otra vez.</p>
+          </div>
+          <div class="col-right reveal r3">
+            <svg width="100%" height="300" viewBox="0 0 380 300">
+              <line x1="20" y1="150" x2="360" y2="150" stroke="#0A0E1A" stroke-opacity="0.15"/>
+              <circle cx="190" cy="150" r="6" fill="#0A0E1A"/>
+              <text x="180" y="130" font-family="JetBrains Mono" font-size="12" fill="#0A0E1A">C</text>
+              <path d="M 100 150 A 90 60 0 0 1 280 150" fill="none" stroke="#C6FF00" stroke-width="4"/>
+              <circle cx="100" cy="150" r="5" fill="#7A9900"/>
+              <circle cx="280" cy="150" r="5" fill="#7A9900"/>
+              <text x="285" y="145" font-family="JetBrains Mono" font-size="12" fill="#0A0E1A">R</text>
+              <circle cx="230" cy="150" r="5" fill="#FF5A1F"/>
+              <text x="222" y="130" font-family="JetBrains Mono" font-size="12" fill="#FF5A1F">i</text>
+              <circle cx="150" cy="150" r="5" fill="#FF5A1F"/>
+              <text x="132" y="130" font-family="JetBrains Mono" font-size="12" fill="#FF5A1F">i&#8217;</text>
+              <text x="40" y="230" font-family="Big Shoulders Text" font-size="13" fill="#0A0E1A" opacity="0.6">i&#8217; es el espejo de i respecto a C — su radio ya lo conocemos</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 — MANACHER COMPLEJIDAD -->
+    <section class="slide dark" id="s5">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Pedro — Manacher</span>
+            <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,58px);margin-top:16px;">La clave: R nunca retrocede</h2>
+            <p class="lead reveal r3" style="margin-top:18px;">Cada vez que una expansión tiene éxito, el borde <span style="font-family:var(--mono)">R</span> avanza. Nunca vuelve atrás. Eso significa que, sumando todas las expansiones de las 29,903 posiciones, el trabajo total sigue acotado por el tamaño de la cadena.</p>
+            <p class="lead reveal r4" style="margin-top:14px;">Un algoritmo de fuerza bruta prueba cada centro y expande desde cero: O(n²). Manacher reutiliza lo ya calculado y baja eso a O(n) — lineal.</p>
+          </div>
+          <div class="reveal r3">
+            <pre class="code">for i in range(1, n-1):
+    mirror = 2*C - i
+    if R > i:
+        P[i] = min(R-i, P[mirror])
+    while T[i+1+P[i]] == T[i-1-P[i]]:
+        P[i] += 1          # esto es lo único
+                            # que cuenta como "trabajo nuevo"
+    if i+P[i] > R:
+        C, R = i, i+P[i]</pre>
+            <p class="mini-note">El while sólo avanza R hacia adelante — por eso el total de pasos está acotado por n.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 — SUFFIX ARRAY CONCEPTO (Ileana) -->
+    <section class="slide light" id="s6">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Ileana — Suffix Array</span>
+            <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,58px);margin-top:16px;">Verlo como buscar una subcadena común</h2>
+            <p class="lead reveal r3" style="margin-top:18px;">Se construye <span style="font-family:var(--mono)">T = S + "#" + reverso(S) + "$"</span>. Un palíndromo centrado en la posición i de S es, en T, una coincidencia entre el sufijo que empieza en i y su posición espejo del lado invertido.</p>
+            <p class="lead reveal r4" style="margin-top:14px;">Esa coincidencia se mide con el <em style="font-style:normal;color:var(--orange, #FF5A1F)">arreglo LCP</em> (cuánto comparten dos sufijos consecutivos en el suffix array) y una <em style="font-style:normal;color:var(--orange, #FF5A1F)">sparse table</em> que responde "¿mínimo LCP en este rango?" en O(1).</p>
+          </div>
+          <div class="col-right reveal r3">
+            <svg width="100%" height="300" viewBox="0 0 380 300">
+              <text x="190" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#0A0E1A">T = S + "#" + reverso(S) + "$"</text>
+              <rect x="20" y="70" width="150" height="46" rx="8" fill="#0A0E1A"/>
+              <text x="95" y="99" text-anchor="middle" fill="#F5F5F3" font-family="JetBrains Mono" font-size="13">S (original)</text>
+              <rect x="210" y="70" width="150" height="46" rx="8" fill="#C6FF00"/>
+              <text x="285" y="99" text-anchor="middle" fill="#0A0E1A" font-family="JetBrains Mono" font-size="13">reverso(S)</text>
+              <path d="M 95 116 C 95 170, 285 170, 285 116" fill="none" stroke="#FF5A1F" stroke-width="3" stroke-dasharray="4 5"/>
+              <text x="190" y="200" text-anchor="middle" font-family="Big Shoulders Text" font-size="13" fill="#0A0E1A" opacity="0.65">LCP entre sufijo(i) y sufijo(espejo de i)</text>
+              <text x="190" y="224" text-anchor="middle" font-family="Big Shoulders Text" font-size="13" fill="#0A0E1A" opacity="0.65">= radio del palíndromo centrado en i</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 — SA COMPLEJIDAD -->
+    <section class="slide dark" id="s7">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Ileana — Suffix Array</span>
+            <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,58px);margin-top:16px;">Construir, ordenar y consultar</h2>
+            <div class="rows reveal r3" style="margin-top:10px;">
+              <div class="row">
+                <span class="row-name" style="font-size:20px;">Suffix array</span>
+                <span class="row-meta">rank doubling + sort · O(n log&sup2; n)</span>
+              </div>
+              <div class="row">
+                <span class="row-name" style="font-size:20px;">LCP (Kasai)</span>
+                <span class="row-meta">recorrido lineal · O(n)</span>
+              </div>
+              <div class="row">
+                <span class="row-name" style="font-size:20px;">Sparse table</span>
+                <span class="row-meta">construir O(n log n) · consultar O(1)</span>
+              </div>
             </div>
-            <div class="bs-status">
-              <span class="b1">L = 8 → ¿existe coincidencia de esa longitud?</span>
-              <span class="b2">no → probar L = 4</span>
-              <span class="b3">sí → probar L = 6</span>
-              <span class="b4">no cabe más → respuesta: L = 5</span>
+            <p class="lead reveal r4" style="margin-top:22px;">El paso que domina es construir el suffix array: log n rondas de duplicación, cada una con un ordenamiento O(n log n). Total: <span style="font-family:var(--mono);color:var(--lime)">O(n log&sup2; n)</span>.</p>
+          </div>
+          <div class="reveal r3">
+            <div class="big-stat">O(n log&sup2; n)</div>
+            <div class="stat-label">tiempo total, dominado por el ordenamiento repetido de sufijos en cada ronda de duplicación</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 — PALINDROME SA (Marco) -->
+    <section class="slide light" id="s8">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Marco — Palindrome SA</span>
+            <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,58px);margin-top:16px;">Misma idea, otra implementación</h2>
+            <p class="lead reveal r3" style="margin-top:18px;">La versión de Marco resuelve el mismo problema con las mismas tres piezas — suffix array, LCP de Kasai y sparse table — pero construye el suffix array ordenando directamente tuplas <span style="font-family:var(--mono)">(rank[i], rank[i+k])</span> en cada ronda, en vez de comparar contra un arreglo de claves aparte.</p>
+            <p class="lead reveal r4" style="margin-top:14px;">El resultado: complejidad idéntica en la teoría — O(n log&sup2; n) — pero una implementación distinta línea por línea. Buen recordatorio de que un mismo algoritmo admite varias formas correctas de escribirse.</p>
+          </div>
+          <div class="reveal r3">
+            <pre class="code" style="max-width:520px;">segundo = rank[k:] + [-1]*k
+clave = list(zip(rank, segundo))
+sa.sort(key=lambda i: clave[i])
+# ordena tuplas (rank[i], rank[i+k])
+# directamente, ronda tras ronda</pre>
+            <p class="mini-note">Verificado: sobre el genoma completo, las tres implementaciones encuentran exactamente el mismo palíndromo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 — TABLA COMPARATIVA TEORICA -->
+    <section class="slide dark" id="s9">
+      <div class="inner" style="justify-content:center;">
+        <span class="eyebrow reveal r1">Comparación</span>
+        <h2 class="reveal r2" style="font-size:clamp(32px,5vw,60px);margin-top:16px;">Lo que dice la notación</h2>
+        <table class="cmp-table reveal r3" style="margin-top:5vh;max-width:900px;">
+          <thead>
+            <tr><th>Algoritmo</th><th>Tiempo</th><th>Espacio</th><th>Idea central</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="algo"><span class="swatch" style="background:#C6FF00"></span>Manacher</td>
+              <td>O(n)</td>
+              <td>O(n)</td>
+              <td style="font-family:var(--text);font-weight:300;font-size:15px;opacity:.75;">expansión con simetría de espejo</td>
+            </tr>
+            <tr>
+              <td class="algo"><span class="swatch" style="background:#FF5A1F"></span>Suffix Array</td>
+              <td>O(n log&sup2; n)</td>
+              <td>O(n)</td>
+              <td style="font-family:var(--text);font-weight:300;font-size:15px;opacity:.75;">LCS entre S y reverso(S)</td>
+            </tr>
+            <tr>
+              <td class="algo"><span class="swatch" style="background:#7DB6FF"></span>Palindrome SA</td>
+              <td>O(n log&sup2; n)</td>
+              <td>O(n)</td>
+              <td style="font-family:var(--text);font-weight:300;font-size:15px;opacity:.75;">misma idea, otro ordenamiento</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="lead reveal r4" style="margin-top:5vh;">En teoría Manacher ya se ve favorecido. La pregunta que sigue: ¿se sostiene con datos reales?</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 10 — BENCHMARK REAL -->
+    <section class="slide light" id="s10">
+      <div class="inner">
+        <span class="eyebrow reveal r1">La teoría, puesta a prueba</span>
+        <h2 class="reveal r2" style="font-size:clamp(30px,4.6vw,54px);margin-top:14px;">Tiempo real sobre el genoma del SARS-CoV-2</h2>
+        <div class="reveal r3" style="margin-top:3vh;">
+          <div class="chart-wrap">
+            <canvas id="benchChart" height="90"></canvas>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="sw" style="background:#C6FF00"></span>Manacher</span>
+            <span class="legend-item"><span class="sw" style="background:#FF5A1F"></span>Suffix Array (Ileana)</span>
+            <span class="legend-item"><span class="sw" style="background:#3E6FE0"></span>Palindrome SA (Marco)</span>
+            <span class="legend-item" style="margin-left:auto;">fragmentos de 500 a 29,903 nucleótidos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11 — RESULTADO -->
+    <section class="slide dark" id="s11">
+      <div class="inner">
+        <div class="split">
+          <div>
+            <span class="eyebrow reveal r1">Resultado</span>
+            <h2 class="reveal r2" style="font-size:clamp(32px,5vw,62px);margin-top:16px;">Manacher gana este reto</h2>
+            <p class="lead reveal r3" style="margin-top:18px;">Sobre el genoma completo (29,903 nt), Manacher tardó <span style="font-family:var(--mono);color:var(--lime)">0.022s</span> contra <span style="font-family:var(--mono)">0.41–0.45s</span> de las dos versiones de suffix array — casi 20 veces más rápido.</p>
+            <div class="winner-badge reveal r4">Palíndromo real: 33 × "A" en la posición 29,870</div>
+            <p class="lead reveal r5" style="margin-top:16px;">Las tres implementaciones coinciden exactamente: es la cola poli-A del extremo 3' del genoma, una característica biológica real de los coronavirus — no un hallazgo casual.</p>
+          </div>
+          <div class="reveal r3">
+            <div class="big-stat">~20×</div>
+            <div class="stat-label">más rápido Manacher que cualquiera de los dos suffix arrays, sobre el genoma completo</div>
+            <p class="lead" style="margin-top:26px;font-size:15px;">Pero el enfoque de suffix array no fue "peor" en general: su LCP + RMQ es un kit reutilizable para muchos otros problemas de cadenas — subcadenas repetidas, comparación entre múltiples secuencias, etc. Manacher está optimizado sólo para este problema.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12 — CONCLUSIONES -->
+    <section class="slide light" id="s12">
+      <div class="inner" style="justify-content:space-between;">
+        <div>
+          <span class="eyebrow reveal r1">Conclusiones</span>
+          <h2 class="reveal r2" style="font-size:clamp(32px,5vw,62px);margin-top:16px;max-width:18ch;">Tres formas de resolver el mismo problema</h2>
+          <div class="rows reveal r3" style="margin-top:4vh;max-width:920px;">
+            <div class="row">
+              <span class="row-name" style="font-size:22px;">Especializar gana velocidad</span>
+              <span class="row-meta">Manacher, hecho a la medida, es O(n) y el más rápido en la práctica</span>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p6"></div><span>06 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 07 — CÓDIGO HASHING -->
-  <section class="slide light" id="s9">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>03 / IMPLEMENTACIÓN</span></div></div>
-      <div class="cols asym">
-        <div class="codebox"><pre><span class="codeline c1" style="animation-delay:.02s"># StringHasher — doble módulo, O(n) precómputo, O(1) consulta</span>
-<span class="codeline" style="animation-delay:.06s"><span class="c3">class</span> <span class="c4">StringHasher</span>:</span>
-<span class="codeline" style="animation-delay:.10s">    <span class="c3">def</span> <span class="c4">__init__</span>(self, s, base1=131, mod1=10**9+7,</span>
-<span class="codeline" style="animation-delay:.14s">                 base2=137, mod2=10**9+9):</span>
-<span class="codeline" style="animation-delay:.18s">        self.n = len(s)</span>
-<span class="codeline" style="animation-delay:.22s">        self.mod1, self.mod2 = mod1, mod2</span>
-<span class="codeline" style="animation-delay:.26s">        self.h1 = [0]*(self.n+1); self.h2 = [0]*(self.n+1)</span>
-<span class="codeline" style="animation-delay:.30s">        self.p1 = [1]*(self.n+1); self.p2 = [1]*(self.n+1)</span>
-<span class="codeline" style="animation-delay:.34s">        <span class="c1"># precómputo — O(n)</span></span>
-<span class="codeline" style="animation-delay:.38s">        <span class="c3">for</span> i, ch <span class="c3">in</span> enumerate(s):</span>
-<span class="codeline" style="animation-delay:.42s">            v = ord(ch)</span>
-<span class="codeline" style="animation-delay:.46s">            self.h1[i+1] = (self.h1[i]*base1 + v) % mod1</span>
-<span class="codeline" style="animation-delay:.50s">            self.h2[i+1] = (self.h2[i]*base2 + v) % mod2</span>
-<span class="codeline" style="animation-delay:.54s">            self.p1[i+1] = (self.p1[i]*base1) % mod1</span>
-<span class="codeline" style="animation-delay:.58s">            self.p2[i+1] = (self.p2[i]*base2) % mod2</span>
-<span class="codeline" style="animation-delay:.63s">    <span class="c3">def</span> <span class="c4">get_hash</span>(self, l, r):</span>
-<span class="codeline" style="animation-delay:.67s">        <span class="c1"># hash de s[l:r) — O(1)</span></span>
-<span class="codeline" style="animation-delay:.71s">        h1 = (self.h1[r] - self.h1[l]*self.p1[r-l]) % self.mod1</span>
-<span class="codeline" style="animation-delay:.75s">        h2 = (self.h2[r] - self.h2[l]*self.p2[r-l]) % self.mod2</span>
-<span class="codeline" style="animation-delay:.79s">        <span class="c3">return</span> (h1, h2)</span>
-<span class="codeline" style="animation-delay:.83s">    <span class="c3">def</span> <span class="c4">equal</span>(self, l1, r1, l2, r2):</span>
-<span class="codeline" style="animation-delay:.87s">        <span class="c3">if</span> (r1-l1) != (r2-l2): <span class="c3">return</span> <span class="c4">False</span></span>
-<span class="codeline" style="animation-delay:.91s">        <span class="c3">return</span> self.get_hash(l1,r1) == self.get_hash(l2,r2)</span></pre></div>
-        <div>
-          <div class="eyebrow anim">LECTURA DEL CÓDIGO</div>
-          <h2 class="title anim" style="font-size:clamp(28px,3.2vw,44px);">Tres pasos, tres complejidades.</h2>
-          <div class="rowlist">
-            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">__init__</div><div class="arrow">O(n)</div></div>
-            <div class="row anim"><div></div><div class="desc">Se ejecuta una sola vez: construye prefijos y potencias de ambos módulos.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">get_hash</div><div class="arrow">O(1)</div></div>
-            <div class="row anim"><div></div><div class="desc">Resta de prefijos — la operación que justifica todo el precómputo previo.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p7"></div><span>07 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 08 — DEBUG HASHING PASO A PASO (fusión: construcción + consulta) -->
-  <section class="slide dark" id="s9b">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING</div><div class="side"><span>03 / DEBUG</span></div></div>
-      <div>
-      <div class="eyebrow anim">PASO A PASO — CONSTRUCCIÓN Y CONSULTA</div>
-      <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">Así se llena y se consulta h[ ].</h2>
-      <p class="lead anim" style="font-size:14px;">s = "ABA", p = 31, m = 97. Cada carácter empuja h[i] = (h[i-1]·p + valor) mod m. Pedir hash(1, 3) = hash("BA") solo resta contra el arreglo ya construido, sin releer "BA".</p>
-      <div class="cols" style="margin-top:26px;">
-        <div>
-          <div class="dbg-chars">
-            <div class="ct anim hi">A</div>
-            <div class="ct anim hi">B</div>
-            <div class="ct anim hi">A</div>
-          </div>
-          <div class="dbg-arr">
-            <div class="cell anim"><div class="idx">h[0]</div><div class="val">0</div></div>
-            <div class="cell anim hi"><div class="idx">h[1]</div><div class="val">1</div></div>
-            <div class="cell anim hi"><div class="idx">h[2]</div><div class="val">33</div></div>
-            <div class="cell anim hi"><div class="idx">h[3]</div><div class="val">54</div></div>
-          </div>
-        </div>
-        <div>
-          <div class="dbg-arr">
-            <div class="cell anim"><div class="idx">h[3]</div><div class="val" style="border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset;">54</div></div>
-            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">−</div></div>
-            <div class="cell anim"><div class="idx">h[1]</div><div class="val" style="border-color:var(--lime); color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset;">1</div></div>
-            <div class="cell op anim"><div class="idx">&nbsp;</div><div class="val">×</div></div>
-            <div class="cell anim"><div class="idx">p²mod m</div><div class="val">88</div></div>
-          </div>
-          <div class="dbg-eq anim">(54 − 1×88) mod 97 = <b>63</b> = hash("BA") — un solo paso, sin tocar "B" ni "A" de nuevo.</div>
-        </div>
-      </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p8"></div><span>08 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 09 — CASOS DE PRUEBA HASHING -->
-  <section class="slide light" id="s10">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> HASH STRING</div><div class="side"><span>03 / PRUEBAS</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">VALIDACIÓN</div>
-          <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Casos de prueba.</h2>
-          <p class="lead anim">Cada caso valida una propiedad distinta: búsqueda de patrón, igualdad de subcadenas y no-igualdad cuando el contenido difiere.</p>
-        </div>
-        <div class="term">
-          <div class="ln" style="animation-delay:.05s"><span class="tag">&gt;&gt;&gt;</span> rabin_karp_search("abracadabra", "abra")</div>
-          <div class="ln ok" style="animation-delay:.20s">[0, 7] <span class="tag">✓ coincide con las posiciones esperadas</span></div>
-          <div class="ln" style="animation-delay:.35s"><span class="tag">&gt;&gt;&gt;</span> h = StringHasher("abcabc")</div>
-          <div class="ln" style="animation-delay:.50s"><span class="tag">&gt;&gt;&gt;</span> h.equal(0, 3, 3, 6)  <span class="tag"># "abc" vs "abc"</span></div>
-          <div class="ln ok" style="animation-delay:.65s">True <span class="tag">✓</span></div>
-          <div class="ln" style="animation-delay:.80s"><span class="tag">&gt;&gt;&gt;</span> h.equal(0, 3, 1, 4)  <span class="tag"># "abc" vs "bca"</span></div>
-          <div class="ln ok" style="animation-delay:.95s">False <span class="tag">✓</span></div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p9"></div><span>09 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 10 — FUNDAMENTOS SUFFIX ARRAY -->
-  <section class="slide dark" id="s12">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>04 / FUNDAMENTOS</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">DEFINICIÓN</div>
-          <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Todos los sufijos, ordenados.</h2>
-          <p class="lead anim">El suffix array SA de una cadena s de longitud n es la permutación de los índices 0..n−1 tal que los sufijos s[SA[0]:], s[SA[1]:], … quedan ordenados lexicográficamente. En vez de comparar por hash, se compara por orden real de caracteres.</p>
-          <div class="formula anim">Construcción por duplicación de rango (Manber–Myers): en la iteración k, se ordena por los primeros 2<span class="k">ᵏ</span> caracteres, duplicando k en cada paso hasta cubrir n.</div>
-        </div>
-        <div>
-          <div class="eyebrow anim">SUFIJOS DE "BANANA"</div>
-          <p class="lead anim" style="font-size:14px;">Los 6 sufijos ordenados lexicográficamente y su posición original:</p>
-          <div class="suflist">
-            <div class="sufrow anim"><div class="si">5</div><div class="sv"><b>A</b></div><div class="sr">SA[0]</div></div>
-            <div class="sufrow anim"><div class="si">3</div><div class="sv"><b>ANA</b></div><div class="sr">SA[1]</div></div>
-            <div class="sufrow anim"><div class="si">1</div><div class="sv"><b>ANANA</b></div><div class="sr">SA[2]</div></div>
-            <div class="sufrow anim"><div class="si">0</div><div class="sv"><b>BANANA</b></div><div class="sr">SA[3]</div></div>
-            <div class="sufrow anim"><div class="si">4</div><div class="sv"><b>NA</b></div><div class="sr">SA[4]</div></div>
-            <div class="sufrow anim"><div class="si">2</div><div class="sv"><b>NANA</b></div><div class="sr">SA[5]</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p10"></div><span>10 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 11 — COMPLEJIDAD FORMAL SUFFIX ARRAY (corregida) -->
-  <section class="slide light" id="s13">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>04 / COMPLEJIDAD</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">ANÁLISIS FORMAL</div>
-          <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">Construcción y consulta.</h2>
-          <table class="complex">
-            <tr><th>Operación</th><th>Tiempo</th><th>Espacio</th></tr>
-            <tr><td>Construcción ingenua (ordenar sufijos)</td><td>O(n² log n)</td><td>O(n²)</td></tr>
-            <tr><td>Duplicación de rango — sort() (este código)</td><td>O(n log² n)</td><td>O(n)</td></tr>
-            <tr><td>Duplicación de rango — con radix sort</td><td>O(n log n)</td><td>O(n)</td></tr>
-            <tr><td>Construcción SA-IS (lineal)</td><td>O(n)</td><td>O(n)</td></tr>
-            <tr><td>LCP array (algoritmo de Kasai)</td><td>O(n)</td><td>O(n)</td></tr>
-            <tr><td>Búsqueda de patrón (binary search)</td><td>O(m log n)</td><td>O(1) extra</td></tr>
-          </table>
-        </div>
-        <div>
-          <div class="eyebrow anim">NOTA DE RIGOR: SORT VS RADIX SORT</div>
-          <p class="lead anim" style="font-size:14.5px;">Nuestro código ordena cada iteración con sort() genérico (comparación): O(n log n) por iteración × O(log n) iteraciones = <b>O(n log² n)</b>. El Manber–Myers "clásico" en O(n log n) reemplaza ese sort por un radix sort sobre los pares (rank, next-rank), que ordena cada iteración en O(n).</p>
-          <div class="rowlist" style="margin-top:16px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl" style="font-size:17px;">Determinismo</div><div class="arrow">→</div></div>
-            <div class="row anim"><div></div><div class="desc">A diferencia del hashing, el resultado siempre es exacto: no hay probabilidad de error.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p11"></div><span>11 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 12 — FORTALEZAS + LIMITACIONES SUFFIX ARRAY (fusión) -->
-  <section class="slide dark" id="s14">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>05 / BALANCE</span></div></div>
-      <div>
-      <h2 class="title anim">Fortalezas y limitaciones.</h2>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">CUÁNDO ES ÓPTIMO</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot"></div><div class="lbl">Determinístico</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Sin probabilidad de colisión: el resultado es siempre exacto, sin importar el adversario.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Orden real</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Permite comparar subcadenas lexicográficamente, algo que el hashing no resuelve.</div><div></div></div>
-            <div class="row anim"><div class="dot"></div><div class="lbl">Versátil con LCP</div><div class="arrow">+</div></div>
-            <div class="row anim"><div></div><div class="desc">Subcadena repetida más larga, conteo de subcadenas distintas y LCS entre dos strings, todo en O(n) adicional.</div><div></div></div>
-          </div>
-        </div>
-        <div>
-          <div class="eyebrow anim">DESVENTAJAS FRENTE A OTRAS ALTERNATIVAS</div>
-          <div class="rowlist" style="margin-top:6px;">
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Implementación</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Mucho más código que un rolling hash; la versión lineal (SA-IS) es notoriamente intrincada.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Overhead de memoria</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Requiere varios arreglos auxiliares (rank, tmp, LCP) además del propio SA.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--orange)"></div><div class="lbl">Consulta más costosa</div><div class="arrow">−</div></div>
-            <div class="row anim"><div></div><div class="desc">Buscar un patrón cuesta O(m log n), frente al O(1) del hashing tras precómputo.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p12"></div><span>12 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 13 — APLICACIONES SUFFIX ARRAY (fusión de 2 casos) -->
-  <section class="slide light" id="s16">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>05 / APLICACIONES</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--ink)"></span>CASO 01</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">Búsqueda de patrones<br>— binary search sobre SA</h2>
-          <p class="lead anim" style="font-size:13.5px;">Como los sufijos están ordenados, buscar si un patrón p aparece en s equivale a hallar su rango en el SA con dos búsquedas binarias, comparando p contra sufijos: costo O(m log n).</p>
-          <div class="bs-wrap">
-            <div class="bs-track">
-              <div class="bs-range"></div>
-              <div class="bs-mid"></div>
+            <div class="row">
+              <span class="row-name" style="font-size:22px;">Generalizar gana alcance</span>
+              <span class="row-meta">suffix array + LCP resuelve familias enteras de problemas de cadenas</span>
             </div>
-            <div class="bs-status">
-              <span class="b1">medio del SA → comparar "ANA" con el sufijo</span>
-              <span class="b2">"ANA" &lt; sufijo → buscar mitad izquierda</span>
-              <span class="b3">"ANA" &gt; sufijo → buscar mitad derecha</span>
-              <span class="b4">rango encontrado → todas las ocurrencias son contiguas en SA</span>
+            <div class="row">
+              <span class="row-name" style="font-size:22px;">La implementación importa</span>
+              <span class="row-meta">misma complejidad teórica, distinto código — Ileana y Marco lo demuestran</span>
             </div>
           </div>
         </div>
-        <div>
-          <div class="pill anim" style="margin-bottom:14px;"><span class="dot" style="background:var(--orange)"></span>CASO 02</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,42px);">LCP array — subcadena<br>repetida más larga</h2>
-          <p class="lead anim" style="font-size:13.5px;">El valor máximo del LCP array es, directamente, la longitud de la subcadena repetida más larga. El conteo de subcadenas distintas sale de n(n+1)/2 menos la suma del LCP — ambas en O(n) tras construir SA y LCP.</p>
-          <div class="suflist" style="max-width:480px;">
-            <div class="sufrow anim"><div class="si">SA[1]</div><div class="sv">ANA</div><div class="sr">LCP=1</div></div>
-            <div class="sufrow anim"><div class="si">SA[2]</div><div class="sv">ANANA</div><div class="sr" style="color:var(--orange); font-weight:600;">LCP=3</div></div>
-            <div class="sufrow anim"><div class="si">SA[3]</div><div class="sv">BANANA</div><div class="sr">LCP=0</div></div>
-            <div class="sufrow anim"><div class="si">SA[4]</div><div class="sv">NA</div><div class="sr">LCP=0</div></div>
-            <div class="sufrow anim"><div class="si">SA[5]</div><div class="sv">NANA</div><div class="sr">LCP=2</div></div>
-          </div>
-          <p class="lead anim" style="font-size:12.5px; margin-top:10px; opacity:.7;">max(LCP) = 3 → la subcadena repetida más larga en "BANANA" es "ANA".</p>
-        </div>
+        <footer class="credits reveal r4">
+          Análisis de Algoritmos Avanzados — José Pedro Rodríguez Munguía (A01769631) · Marco Aurelio Tamez Robles (A01770750) · Ileana Tapia Castillo (A01771374)
+        </footer>
       </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p13"></div><span>13 / 17</span></div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 14 — CÓDIGO SUFFIX ARRAY (corregida) -->
-  <section class="slide dark" id="s17">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / IMPLEMENTACIÓN</span></div></div>
-      <div class="cols asym">
-        <div class="codebox"><pre><span class="codeline c1" style="animation-delay:.02s"># Suffix array por duplicación de rango — O(n log² n) con sort()</span>
-<span class="codeline" style="animation-delay:.06s"><span class="c3">def</span> <span class="c4">build_suffix_array</span>(s):</span>
-<span class="codeline" style="animation-delay:.10s">    n = len(s)</span>
-<span class="codeline" style="animation-delay:.14s">    sa = list(range(n))</span>
-<span class="codeline" style="animation-delay:.18s">    rank = [ord(c) <span class="c3">for</span> c <span class="c3">in</span> s]</span>
-<span class="codeline" style="animation-delay:.22s">    k = 1</span>
-<span class="codeline" style="animation-delay:.26s">    <span class="c3">while</span> <span class="c4">True</span>:</span>
-<span class="codeline" style="animation-delay:.30s">        <span class="c3">def</span> <span class="c4">key</span>(i):</span>
-<span class="codeline" style="animation-delay:.34s">            nxt = rank[i+k] <span class="c3">if</span> i+k &lt; n <span class="c3">else</span> -1</span>
-<span class="codeline" style="animation-delay:.38s">            <span class="c3">return</span> (rank[i], nxt)</span>
-<span class="codeline" style="animation-delay:.42s">        sa.sort(key=key)  <span class="c1"># O(n log n) por iteración</span></span>
-<span class="codeline" style="animation-delay:.46s">        tmp = [0]*n; tmp[sa[0]] = 0</span>
-<span class="codeline" style="animation-delay:.50s">        <span class="c3">for</span> i <span class="c3">in</span> range(1, n):</span>
-<span class="codeline" style="animation-delay:.54s">            tmp[sa[i]] = tmp[sa[i-1]] + (key(sa[i]) &gt; key(sa[i-1]))</span>
-<span class="codeline" style="animation-delay:.58s">        rank = tmp</span>
-<span class="codeline" style="animation-delay:.63s">        <span class="c3">if</span> rank[sa[-1]] == n-1 <span class="c3">or</span> k &gt; n: <span class="c3">break</span></span>
-<span class="codeline" style="animation-delay:.67s">        k *= 2</span>
-<span class="codeline" style="animation-delay:.71s">    <span class="c3">return</span> sa</span>
-<span class="codeline" style="animation-delay:.76s"><span class="c1"></span></span>
-<span class="codeline" style="animation-delay:.79s"><span class="c1"># LCP array — algoritmo de Kasai, O(n)</span></span>
-<span class="codeline" style="animation-delay:.83s"><span class="c3">def</span> <span class="c4">kasai_lcp</span>(s, sa):</span>
-<span class="codeline" style="animation-delay:.87s">    n = len(s); rank = [0]*n; lcp = [0]*n; h = 0</span>
-<span class="codeline" style="animation-delay:.91s">    <span class="c3">for</span> i, p <span class="c3">in</span> enumerate(sa): rank[p] = i</span>
-<span class="codeline" style="animation-delay:.95s">    <span class="c3">for</span> i <span class="c3">in</span> range(n):</span>
-<span class="codeline" style="animation-delay:.99s">        <span class="c3">if</span> rank[i] &gt; 0:</span>
-<span class="codeline" style="animation-delay:1.03s">            j = sa[rank[i]-1]</span>
-<span class="codeline" style="animation-delay:1.07s">            <span class="c3">while</span> i+h&lt;n <span class="c3">and</span> j+h&lt;n <span class="c3">and</span> s[i+h]==s[j+h]: h += 1</span>
-<span class="codeline" style="animation-delay:1.11s">            lcp[rank[i]] = h</span>
-<span class="codeline" style="animation-delay:1.15s">            <span class="c3">if</span> h &gt; 0: h -= 1</span>
-<span class="codeline" style="animation-delay:1.19s">    <span class="c3">return</span> lcp</span></pre></div>
-        <div>
-          <div class="eyebrow anim">LECTURA DEL CÓDIGO</div>
-          <h2 class="title anim" style="font-size:clamp(26px,3vw,40px);">Dos funciones, dos complejidades.</h2>
-          <div class="rowlist">
-            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">build_suffix_array</div><div class="arrow">O(n log² n)</div></div>
-            <div class="row anim"><div></div><div class="desc">log n iteraciones, cada una ordena con sort() en O(n log n). Con radix sort sobre (rank, next) bajaría a O(n log n) total.</div><div></div></div>
-            <div class="row anim"><div class="dot" style="background:var(--ink)"></div><div class="lbl" style="font-size:17px;">kasai_lcp</div><div class="arrow">O(n)</div></div>
-            <div class="row anim"><div></div><div class="desc">Explota que h nunca baja más de 1 entre iteraciones consecutivas — amortizado lineal.</div><div></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p14"></div><span>14 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 15 — DEBUG SUFFIX ARRAY PASO A PASO -->
-  <section class="slide light" id="s17b">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot" style="background:var(--ink)"></span> SUFFIX ARRAY</div><div class="side"><span>06 / DEBUG</span></div></div>
-      <div>
-        <div class="eyebrow anim">PASO A PASO — ORDENANDO "BANANA"</div>
-        <h2 class="title anim" style="font-size:clamp(28px,3.4vw,48px);">De sufijos crudos a SA.</h2>
-        <p class="lead anim" style="font-size:14px;">Con k=1 se ordena por 2 caracteres; con k=2 por 4; con k=4 ya se cubren los 6 caracteres y el orden queda estable.</p>
-        <div style="margin-top:26px;">
-          <div class="dbg-arr">
-            <div class="cell anim"><div class="idx">rank inicial</div><div class="val">B</div></div>
-            <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">A</div></div>
-            <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">N</div></div>
-            <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">A</div></div>
-            <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">N</div></div>
-            <div class="cell anim"><div class="idx">&nbsp;</div><div class="val">A</div></div>
-          </div>
-          <div class="dbg-eq anim">tras k=1, k=2, k=4 → <b>SA = [5, 3, 1, 0, 4, 2]</b> (A, ANA, ANANA, BANANA, NA, NANA)</div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p15"></div><span>15 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 16 — CASOS DE PRUEBA SUFFIX ARRAY -->
-  <section class="slide dark" id="s18">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> SUFFIX ARRAY</div><div class="side"><span>06 / PRUEBAS</span></div></div>
-      <div class="cols">
-        <div>
-          <div class="eyebrow anim">VALIDACIÓN</div>
-          <h2 class="title anim" style="font-size:clamp(30px,3.6vw,52px);">Casos de prueba.</h2>
-          <p class="lead anim">Se valida el propio SA, el LCP array derivado y la búsqueda de patrón sobre el arreglo ordenado.</p>
-        </div>
-        <div class="term">
-          <div class="ln" style="animation-delay:.05s"><span class="tag">&gt;&gt;&gt;</span> sa = build_suffix_array("banana")</div>
-          <div class="ln ok" style="animation-delay:.20s">[5, 3, 1, 0, 4, 2] <span class="tag">✓</span></div>
-          <div class="ln" style="animation-delay:.35s"><span class="tag">&gt;&gt;&gt;</span> kasai_lcp("banana", sa)</div>
-          <div class="ln ok" style="animation-delay:.50s">[0, 1, 3, 0, 0, 2] <span class="tag">✓ max = 3 → "ana"</span></div>
-          <div class="ln" style="animation-delay:.65s"><span class="tag">&gt;&gt;&gt;</span> search_pattern("banana", sa, "ana")</div>
-          <div class="ln ok" style="animation-delay:.80s">[1, 3] <span class="tag">✓ ocurre en las posiciones 1 y 3</span></div>
-        </div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p16"></div><span>16 / 17</span></div>
-    </div>
-  </section>
-
-  <!-- 17 — CIERRE: GRACIAS -->
-  <section class="slide dark" id="s11">
-    <div class="frame">
-      <div class="topbar"><div class="mark"><span class="dot"></span> HASH STRING · SUFFIX ARRAY</div><div class="side"><span>CIERRE</span></div></div>
-      <div class="thanks-wrap">
-        <div class="thanks-title">GRACIAS<span class="dot-lime">.</span></div>
-
-        <div class="keycap lime"      style="top:12%; left:10%;  width:58px; height:58px; font-size:22px; --rot:-8deg;  animation-delay:.0s;">H</div>
-        <div class="keycap"           style="top:20%; left:26%;  width:52px; height:52px; font-size:19px; --rot:6deg;   animation-delay:.35s;">A</div>
-        <div class="keycap orange"    style="top:10%; left:44%;  width:60px; height:60px; font-size:22px; --rot:-4deg;  animation-delay:.15s;">S</div>
-        <div class="keycap"           style="top:16%; left:64%;  width:54px; height:54px; font-size:19px; --rot:10deg;  animation-delay:.55s;">H</div>
-        <div class="keycap lime"      style="top:10%; left:82%;  width:58px; height:58px; font-size:22px; --rot:-6deg;  animation-delay:.25s;">$</div>
-
-        <div class="keycap orange"    style="top:78%; left:8%;   width:56px; height:56px; font-size:20px; --rot:5deg;   animation-delay:.7s;">S</div>
-        <div class="keycap"           style="top:82%; left:24%;  width:52px; height:52px; font-size:19px; --rot:-9deg;  animation-delay:.4s;">A</div>
-        <div class="keycap lime"      style="top:76%; left:42%;  width:60px; height:60px; font-size:22px; --rot:4deg;   animation-delay:1.0s;">→</div>
-        <div class="keycap"           style="top:84%; left:62%;  width:54px; height:54px; font-size:19px; --rot:-5deg;  animation-delay:.6s;">L</div>
-        <div class="keycap orange"    style="top:78%; left:80%;  width:58px; height:58px; font-size:20px; --rot:8deg;   animation-delay:.85s;">C</div>
-
-        <div class="keycap"           style="top:45%; left:4%;   width:50px; height:50px; font-size:18px; --rot:-6deg;  animation-delay:1.2s;">P</div>
-        <div class="keycap lime"      style="top:48%; left:93%;  width:52px; height:52px; font-size:18px; --rot:7deg;   animation-delay:.9s;">O(1)</div>
-      </div>
-      <div class="footbar"><span>HASH STRING · SUFFIX ARRAY · EQUIPO 5-8</span><div class="progress" id="p17"></div><span>17 / 17</span></div>
-    </div>
-  </section>
-
+  </div>
 </div>
 
-<div id="timer">00:00 / 10:00</div>
-<div id="nav"><div class="navbtn" id="prevBtn">←</div><div class="navbtn" id="nextBtn">→</div></div>
-<div id="hint">USA ← → O CLIC PARA NAVEGAR</div>
+<div class="chrome">
+  <div class="chrome-top">
+    <span class="brand">Palíndromos · SARS-CoV-2</span>
+    <span class="count"><span id="cur">01</span> / 12</span>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="navbtns">
+    <button class="navbtn" id="prev" aria-label="Anterior">&#8592;</button>
+    <button class="navbtn" id="next" aria-label="Siguiente">&#8594;</button>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="fill"></div></div>
+</div>
 
 <script>
+(function(){
+  const track = document.getElementById('track');
   const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  const dotsWrap = document.getElementById('dots');
+  const curEl = document.getElementById('cur');
+  const fill = document.getElementById('fill');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
   let idx = 0;
+  let animating = false;
 
-  function renderProgress(){
-    document.querySelectorAll('.progress').forEach(p=>{
-      p.innerHTML = slides.map((_,i)=>`<span class="${i<=idx?'done':''}"></span>`).join('');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function render(){
+    track.style.transform = `translateX(-${idx * 100}vw)`;
+    slides.forEach((s,i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d,i) => d.classList.toggle('on', i === idx));
+    curEl.textContent = String(idx+1).padStart(2,'0');
+    fill.style.width = ((idx+1)/total*100) + '%';
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total-1;
+    if(idx === 9) drawChart();
+  }
+
+  function go(i){
+    if(animating) return;
+    idx = Math.max(0, Math.min(total-1, i));
+    animating = true;
+    render();
+    setTimeout(() => animating = false, 500);
+  }
+
+  prevBtn.addEventListener('click', () => go(idx-1));
+  nextBtn.addEventListener('click', () => go(idx+1));
+
+  window.addEventListener('keydown', (e) => {
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); go(idx+1); }
+    if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); go(idx-1); }
+    if(e.key === 'Home') go(0);
+    if(e.key === 'End') go(total-1);
+  });
+
+  // swipe support
+  let touchX = null;
+  document.getElementById('deck').addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+  document.getElementById('deck').addEventListener('touchend', e => {
+    if(touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx) > 50) go(dx < 0 ? idx+1 : idx-1);
+    touchX = null;
+  });
+
+  render();
+
+  // ---- chart ----
+  let chartDrawn = false;
+  function drawChart(){
+    if(chartDrawn) return;
+    chartDrawn = true;
+    const data = {
+      n: [500,1000,2000,4000,8000,16000,29903],
+      manacher: [0.00042272,0.00075713,0.00145145,0.00296755,0.00572935,0.01149990,0.02181286],
+      sa_ileana: [0.00551131,0.00960706,0.02275531,0.04735888,0.09588135,0.21020000,0.45470000],
+      sa_marco:  [0.00456786,0.00694599,0.01525632,0.03229322,0.07176198,0.17867882,0.41436369]
+    };
+    const ctx = document.getElementById('benchChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.n.map(n => n.toLocaleString('es-MX')),
+        datasets: [
+          { label:'Manacher', data:data.manacher, borderColor:'#7A9900', backgroundColor:'#C6FF00', pointBackgroundColor:'#7A9900', tension:.3, borderWidth:3 },
+          { label:'Suffix Array (Ileana)', data:data.sa_ileana, borderColor:'#FF5A1F', backgroundColor:'#FF5A1F', tension:.3, borderWidth:3 },
+          { label:'Palindrome SA (Marco)', data:data.sa_marco, borderColor:'#3E6FE0', backgroundColor:'#3E6FE0', tension:.3, borderWidth:3 }
+        ]
+      },
+      options: {
+        responsive:true,
+        animation:{ duration: 1400, easing:'easeOutCubic' },
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ title:{ display:true, text:'nucleótidos procesados', font:{family:'JetBrains Mono', size:11} }, grid:{ display:false } },
+          y:{ title:{ display:true, text:'segundos', font:{family:'JetBrains Mono', size:11} }, beginAtZero:true }
+        }
+      }
     });
   }
-
-  function show(i){
-    idx = Math.max(0, Math.min(slides.length-1, i));
-    slides.forEach((s,j)=> s.classList.toggle('active', j===idx));
-    renderProgress();
-  }
-
-  document.getElementById('nextBtn').addEventListener('click', ()=> show(idx+1));
-  document.getElementById('prevBtn').addEventListener('click', ()=> show(idx-1));
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === 'ArrowRight' || e.key === ' ') show(idx+1);
-    if(e.key === 'ArrowLeft') show(idx-1);
-  });
-  document.getElementById('deck').addEventListener('click', (e)=>{
-    if(e.target.closest('#nav')) return;
-    const w = window.innerWidth;
-    if(e.clientX > w/2) show(idx+1); else show(idx-1);
-  });
-
-  renderProgress();
-
-  // ---- reloj de práctica: cuenta hacia el límite de 10 minutos de la rúbrica ----
-  const LIMIT = 10*60;
-  let startTime = null;
-  const timerEl = document.getElementById('timer');
-
-  function fmt(s){
-    const m = Math.floor(Math.abs(s)/60), r = Math.floor(Math.abs(s)%60);
-    return (s<0?'-':'')+String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
-  }
-
-  function startClock(){
-    if(startTime) return;
-    startTime = Date.now();
-    tick();
-  }
-
-  function tick(){
-    if(!startTime) return;
-    const elapsed = (Date.now()-startTime)/1000;
-    timerEl.textContent = fmt(elapsed)+' / 10:00';
-    timerEl.classList.toggle('warn', elapsed >= LIMIT-90 && elapsed < LIMIT);
-    timerEl.classList.toggle('over', elapsed >= LIMIT);
-    requestAnimationFrame(tick);
-  }
-
-  // arranca el reloj en la primera interacción (clic o flecha), no al cargar la página
-  window.addEventListener('keydown', startClock, { once:true });
-  document.getElementById('deck').addEventListener('click', startClock, { once:true });
+})();
 </script>
-
 </body>
 </html>
